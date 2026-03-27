@@ -296,7 +296,7 @@ function buildPage(){
     // RSVP PANEL
     +'<div class="panel active" id="panel-rsvp">'
     +(isPast?'<div class="alert past-notice">⏰ 此賽事已完場，登記已關閉</div>':'')
-    +'<div class="alert reserve" id="capAlert">ℹ️ 正選名額已滿，將自動排入後備名單</div>'
+    +'<div class="alert reserve" id="capAlert">ℹ️ 外場正選名額已滿，將自動排入後備名單（GK 不受此限制）</div>'
     +'<p class="slabel">你會出席嗎？</p>'
     +'<div class="rsvp-row">'
     +'<div class="rsvp-btn going" onclick="selStatus(\'going\',this)"><span class="ri">✅</span>出席</div>'
@@ -320,13 +320,14 @@ function buildPage(){
 
     // ROSTER PANEL
     +'<div class="panel" id="panel-roster">'
-    +'<div class="stats-row">'
+    +'<div class="stats-row" style="grid-template-columns:repeat(5,1fr)">'
+    +'<div class="stat-box"><div class="stat-num" style="color:#f59e0b" id="cGK">0</div><div class="stat-lbl">GK 門將</div></div>'
     +'<div class="stat-box"><div class="stat-num g" id="cG">0</div><div class="stat-lbl">正選</div></div>'
     +'<div class="stat-box"><div class="stat-num r" id="cR">0</div><div class="stat-lbl">後備</div></div>'
     +'<div class="stat-box"><div class="stat-num m" id="cM">0</div><div class="stat-lbl">未定</div></div>'
     +'<div class="stat-box"><div class="stat-num x" id="cX">0</div><div class="stat-lbl">缺席</div></div>'
     +'</div>'
-    +'<div class="cap-box"><div class="cap-top"><span>正選容量</span><span id="capText">0/'+cap+' 人</span></div>'
+    +'<div class="cap-box"><div class="cap-top"><span>⚽ 外場正選容量（不含GK）</span><span id="capText">0/'+cap+' 人</span></div>'
     +'<div class="cap-track"><div class="cap-fill low" id="capBar" style="width:0%"></div></div></div>'
     +'<div id="rosterList"><div class="empty"><div class="ei">👟</div><p>等緊隊友登記中...</p></div></div>'
     +'</div>'
@@ -355,14 +356,31 @@ function selStatus(s,el){
   document.querySelectorAll('.rsvp-btn').forEach(function(b){b.classList.remove('sel');});
   el.classList.add('sel');
   document.getElementById('reasonWrap').style.display=s==='no'?'block':'none';
-  var mc=annotate().filter(function(p){return p.slot==='main';}).length;
-  var cap=eventData?eventData.capacity||14:14;
-  var a=document.getElementById('capAlert');
-  if(a) a.classList.toggle('show',s==='going'&&mc>=cap);
+  // GK is exempt from outfield cap — only show alert if outfield slot is full
+  var isGK=curPos&&curPos.indexOf('GK')>=0;
+  if(!isGK){
+    var mc=annotate().filter(function(p){return p.slot==='main'&&!isGKPos(p.pos);}).length;
+    var cap=eventData?eventData.capacity||14:14;
+    var a=document.getElementById('capAlert');
+    if(a) a.classList.toggle('show',s==='going'&&mc>=cap);
+  }
 }
 function selPill(el){
   document.querySelectorAll('#posPills .pill').forEach(function(p){p.classList.remove('sel');});
   el.classList.add('sel');curPos=el.textContent;
+  // Recheck cap alert whenever position changes
+  if(curStatus==='going'){
+    var isGK=curPos&&curPos.indexOf('GK')>=0;
+    var a=document.getElementById('capAlert');
+    if(a){
+      if(isGK){a.classList.remove('show');}
+      else{
+        var mc=annotate().filter(function(p){return p.slot==='main'&&!isGKPos(p.pos);}).length;
+        var cap=eventData?eventData.capacity||14:14;
+        a.classList.toggle('show',mc>=cap);
+      }
+    }
+  }
 }
 
 function submitRSVP(){
@@ -384,8 +402,11 @@ function submitRSVP(){
     :db.collection('events').doc(eventId).collection('registrations').add(data);
   promise.then(function(){
     syncMainCount();
-    var isReserve=status==='going'&&annotate().filter(function(p){return p.slot==='main';}).length>=cap;
+    var isGK=data.pos&&data.pos.indexOf('GK')>=0;
+    var outfieldMain=annotate().filter(function(p){return p.slot==='main'&&!isGKPos(p.pos);}).length;
+    var isReserve=status==='going'&&!isGK&&outfieldMain>=cap;
     if(existing) toast('登記已更新 ✅');
+    else if(status==='going'&&isGK) toast('✅ GK 登記成功！（額外名額）');
     else if(status==='going'&&!isReserve) toast('登記成功！場見 🎉');
     else if(status==='going'&&isReserve) toast('已加入後備名單 🔵','info');
     else if(status==='maybe') toast('已加入未定名單');
@@ -395,14 +416,23 @@ function submitRSVP(){
   .finally(function(){btn.disabled=false;btn.textContent='確認登記';});
 }
 
-// ── ANNOTATE (first-come → slots) ────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────────
+function isGKPos(pos){ return pos&&pos.indexOf('GK')>=0; }
+
+// ── ANNOTATE (GK-aware: GK is exempt from outfield cap) ──────────
+// GK players who are 'going' get slot='gk' (always confirmed, no cap limit)
+// Outfield 'going' players fill up to cap, then become reserve
 function annotate(list){
   list=list||players;
   var cap=eventData?eventData.capacity||14:14;
   var sorted=[].concat(list).sort(function(a,b){return a.ts-b.ts;});
-  var mn=0,rv=0;
+  var mn=0,rv=0,gkn=0;
   return sorted.map(function(p){
     if(p.status==='going'){
+      if(isGKPos(p.pos)){
+        gkn++;
+        return Object.assign({},p,{slot:'gk',seq:gkn});
+      }
       if(mn<cap){mn++;return Object.assign({},p,{slot:'main',seq:mn});}
       else{rv++;return Object.assign({},p,{slot:'reserve',seq:rv});}
     }
@@ -413,10 +443,12 @@ function annotate(list){
 // ── ROSTER (read-only) ────────────────────────────────────────────
 function renderRoster(){
   var ann=annotate(),cap=eventData?eventData.capacity||14:14;
+  var gk=ann.filter(function(p){return p.slot==='gk';});
   var main=ann.filter(function(p){return p.slot==='main';});
   var reserve=ann.filter(function(p){return p.slot==='reserve';});
   var maybe=ann.filter(function(p){return p.status==='maybe';});
   var no=ann.filter(function(p){return p.status==='notgoing';});
+  var gkEl=document.getElementById('cGK');if(gkEl) gkEl.textContent=gk.length;
   ['cG','cR','cM','cX'].forEach(function(id,i){
     var el=document.getElementById(id);
     if(el) el.textContent=[main.length,reserve.length,maybe.length,no.length][i];
@@ -426,7 +458,8 @@ function renderRoster(){
   if(!el) return;
   if(!players.length){el.innerHTML='<div class="empty"><div class="ei">👟</div><p>等緊隊友登記中...</p></div>';return;}
   var h='<div class="plist">';
-  if(main.length){h+='<div class="glabel">✅ 正選出席 ('+main.length+'/'+cap+')</div>';h+=main.map(function(p){return pCard(p,'main',false);}).join('');}
+  if(gk.length){h+='<div class="glabel" style="color:#f59e0b">🧤 門將 GK ('+gk.length+')</div>';h+=gk.map(function(p){return pCard(p,'gk',false);}).join('');}
+  if(main.length){h+='<div class="glabel">✅ 外場正選 ('+main.length+'/'+cap+')</div>';h+=main.map(function(p){return pCard(p,'main',false);}).join('');}
   if(reserve.length){h+='<hr class="reserve-divider"><div class="glabel blue">🔵 後備名單 ('+reserve.length+')</div>';h+=reserve.map(function(p){return pCard(p,'reserve',false);}).join('');}
   if(maybe.length){h+='<div class="glabel">🤔 未確定 ('+maybe.length+')</div>';h+=maybe.map(function(p){return pCard(p,'maybe',false);}).join('');}
   if(no.length){h+='<div class="glabel">❌ 不出席 ('+no.length+')</div>';h+=no.map(function(p){return pCard(p,'notgoing',false);}).join('');}
@@ -440,7 +473,7 @@ function updateCapBar(){
   var pct=Math.min(mc/cap*100,100);
   var bar=document.getElementById('capBar'),txt=document.getElementById('capText');
   if(bar){bar.style.width=pct+'%';bar.className='cap-fill '+(pct>=90?'hi':pct>=60?'mid':'low');}
-  if(txt) txt.textContent=mc+'/'+cap+' 人';
+  if(txt) txt.textContent=mc+'/'+cap+' 人（不含GK）';
 }
 
 // ── MANAGER PANEL ─────────────────────────────────────────────────
@@ -465,9 +498,14 @@ function renderMgrPanel(){
     el.innerHTML=h; return;
   }
 
+  var gk=ann.filter(function(p){return p.slot==='gk';});
   h+='<div class="plist">';
+  if(gk.length){
+    h+='<div class="glabel" style="color:#f59e0b">🧤 門將 GK ('+gk.length+') — 額外名額</div>';
+    h+=gk.map(function(p){return mgrCard(p,'gk');}).join('');
+  }
   if(main.length){
-    h+='<div class="glabel">✅ 正選出席 ('+main.length+'/'+cap+')</div>';
+    h+='<div class="glabel">✅ 外場正選 ('+main.length+'/'+cap+')</div>';
     h+=main.map(function(p){return mgrCard(p,'main');}).join('');
   }
   if(reserve.length){
@@ -489,12 +527,14 @@ function renderMgrPanel(){
 function mgrCard(p,slot){
   var ini=p.name.charAt(0).toUpperCase();
   var col=p.color||rndColor(p.name);
-  var numHtml=slot==='main'
+  var numHtml=slot==='gk'
+    ?'<div class="pnum" style="color:#f59e0b;font-size:13px">GK</div>'
+    :slot==='main'
     ?'<div class="pnum mn">'+p.seq+'</div>'
     :slot==='reserve'
     ?'<div class="pnum rv">R'+p.seq+'</div>'
     :'<div class="pnum">—</div>';
-  var dotCls=slot==='main'?'g':slot==='reserve'?'r':p.status==='maybe'?'m':'x';
+  var dotCls=slot==='gk'?'m':slot==='main'?'g':slot==='reserve'?'r':p.status==='maybe'?'m':'x';
 
   // Action buttons based on current slot/status
   var actions='<div class="mgr-actions">';
@@ -591,20 +631,23 @@ function clearAllRegistrations(){
   }).catch(function(e){toast('清除失敗','err');});
 }
 
-// Sync mainCount on event doc
+// Sync mainCount on event doc (outfield only, GK excluded)
 function syncMainCount(){
   var mc=annotate().filter(function(p){return p.slot==='main';}).length;
-  db.collection('events').doc(eventId).update({mainCount:mc});
+  var gkc=annotate().filter(function(p){return p.slot==='gk';}).length;
+  db.collection('events').doc(eventId).update({mainCount:mc, gkCount:gkc});
 }
 
 // ── PLAYER CARD (read-only) ───────────────────────────────────────
 function pCard(p,slot,mgr){
   var ini=p.name.charAt(0).toUpperCase();
   var col=p.color||rndColor(p.name);
-  var num=slot==='main'?'<div class="pnum mn">'+p.seq+'</div>'
+  var num=slot==='gk'
+         ?'<div class="pnum" style="color:#f59e0b;font-size:12px">GK</div>'
+         :slot==='main'?'<div class="pnum mn">'+p.seq+'</div>'
          :slot==='reserve'?'<div class="pnum rv">R'+p.seq+'</div>'
          :'<div class="pnum">—</div>';
-  var dot=slot==='main'?'g':slot==='reserve'?'r':p.status==='maybe'?'m':'x';
+  var dot=slot==='gk'?'m':slot==='main'?'g':slot==='reserve'?'r':p.status==='maybe'?'m':'x';
   return '<div class="pcard'+(slot==='reserve'?' rv':'')+'">'
     +num
     +'<div class="pavatar" style="background:'+col+'18;color:'+col+'">'+ini+'</div>'

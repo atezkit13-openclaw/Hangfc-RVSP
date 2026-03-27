@@ -431,7 +431,7 @@ function cardHTML(ev) {
     +'<div class="card-actions">'
     +'<div class="card-slots">'
     +'<div class="slot-avatars">'+filledAvatars+'</div>'
-    +'<span class="slot-text">&nbsp;'+mc+'</span><span class="slot-sub">&nbsp;/ '+cap+' 人</span>'
+    +'<span class="slot-text">&nbsp;'+mc+'</span><span class="slot-sub">&nbsp;/ '+cap+' 人'+(ev.gkCount?'  🧤'+ev.gkCount:'')+'</span>'
     +'</div>'
     +'<div class="card-progress"><div class="prog-track"><div class="prog-fill '+fillCls+'" style="width:'+pct+'%"></div></div></div>'
     +'<span class="card-arrow">›</span>'
