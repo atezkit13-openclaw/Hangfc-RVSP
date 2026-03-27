@@ -180,13 +180,14 @@ function buildPage() {
   var dayName=DAYS[new Date(ev.date+'T00:00:00').getDay()];
   var statusCls=isPast?'past':ev.mainCount>=cap?'full':'open';
   var statusTxt=isPast?'已完場':ev.mainCount>=cap?'爆滿 🔥':'報名中 ✅';
-  document.title=(ev.title||'賽事')+' — 恆友 FC';
+  var autoTitle=MONTHS[mm-1]+dd+'日 vs '+(ev.opponent||'別隊');
+  document.title=autoTitle+' — 恆友 FC';
 
   document.getElementById('mainWrap').innerHTML=
     // Top nav
     '<div class="topnav">'
     +'<div class="back-btn" onclick="history.back()">‹ 返回</div>'
-    +'<div class="nav-title">'+esc(ev.title||'友賽')+'</div>'
+    +'<div class="nav-title">'+esc(MONTHS[mm-1]+dd+'日 vs '+(ev.opponent||'別隊'))+'</div>'
     +'<div class="nav-right"></div>'
     +'</div>'
 
@@ -194,10 +195,17 @@ function buildPage() {
     +'<div class="ev-banner">'
     +'<div class="ev-banner-bg"></div>'
     +'<div class="ev-banner-grid"></div>'
-    +(ev.shirtColor?'<div class="ev-shirt" style="background:'+ev.shirtColor+'"></div>':'')
+    +(function(){
+      if(!ev.shirtColor&&!ev.oppColor) return '';
+      var s='<div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2">';
+      if(ev.shirtColor) s+='<div style="width:26px;height:26px;border-radius:50%;background:'+ev.shirtColor+';border:2px solid rgba(255,255,255,0.4)" title="我方"></div>';
+      if(ev.shirtColor&&ev.oppColor) s+='<div style="font-size:8px;color:rgba(255,255,255,0.5);font-weight:700">VS</div>';
+      if(ev.oppColor) s+='<div style="width:26px;height:26px;border-radius:50%;background:'+ev.oppColor+';border:2px solid rgba(255,255,255,0.4)" title="對方"></div>';
+      return s+'</div>';
+    })()
     +'<div class="ev-banner-content">'
     +'<span class="ev-status-badge '+statusCls+'">'+statusTxt+'</span>'
-    +'<div class="ev-banner-title">'+esc(ev.title||'友賽')+'</div>'
+    +'<div class="ev-banner-title">vs '+esc(ev.opponent||'別隊')+'</div>'
     +'<div class="ev-banner-date">'+yr+'年 '+MONTHS[mm-1]+' '+dd+'日（'+dayName+'）</div>'
     +'</div></div>'
 
