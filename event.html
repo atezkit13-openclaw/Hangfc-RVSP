@@ -132,15 +132,13 @@ import { getFirestore, doc, getDoc, onSnapshot, collection, query, orderBy, addD
 
 // ── FIREBASE CONFIG (same as index.html) ─────────────────────────
 const firebaseConfig = {
-  apiKey:            "REPLACE_API_KEY",
-  authDomain:        "REPLACE_PROJECT_ID.firebaseapp.com",
-  projectId:         "REPLACE_PROJECT_ID",
-  storageBucket:     "REPLACE_PROJECT_ID.appspot.com",
-  messagingSenderId: "REPLACE_SENDER_ID",
-  appId:             "REPLACE_APP_ID"
+  apiKey: "AIzaSyAyLmh84JDr5ddjOnYYqgcJsupHJaZ-kig",
+  authDomain: "hangfc-rvsp.firebaseapp.com",
+  projectId: "hangfc-rvsp",
+  storageBucket: "hangfc-rvsp.firebasestorage.app",
+  messagingSenderId: "477710217351",
+  appId: "1:477710217351:web:20badc5d8f88aa34404822"
 };
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
 
 // ── PARSE EVENT ID ────────────────────────────────────────────────
 const params  = new URLSearchParams(location.search);
