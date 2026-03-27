@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⚽ 恆友 FC — 賽程</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+HK:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- Firebase Compat (works on all static hosts) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root{--accent:#f5c518;--dark:#0d1117;--card:#161b22;--card2:#1c2330;--border:rgba(255,255,255,0.08);--text:#e6edf3;--muted:#8b949e;--going:#2ea043;--reserve:#1d6fa4;--notgoing:#da3633;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans HK',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 56px,rgba(255,255,255,0.012) 56px,rgba(255,255,255,0.012) 112px);pointer-events:none;z-index:0;}
+.wrap{max-width:480px;margin:0 auto;padding:0 0 90px;position:relative;z-index:1;}
+
+.hero{background:linear-gradient(160deg,#1a3a1f 0%,#0d1117 65%);padding:28px 20px 20px;border-bottom:3px solid var(--accent);position:relative;overflow:hidden;}
+.hero::after{content:'⚽';position:absolute;right:-20px;top:-15px;font-size:130px;opacity:0.05;transform:rotate(20deg);pointer-events:none;}
+.hrow{display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:12px;}
+.logo{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#e6a800);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(245,197,24,0.35);flex-shrink:0;}
+.team-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1;}
+.team-sub{font-size:10px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+.mgr-btn{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:12px;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+.mgr-btn.active{border-color:var(--accent);color:var(--accent);}
+
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;}
+.cal-month{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.nav-arr{width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+
+.cal-wrap{padding:0 14px 10px;}
+.day-headers{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+.dh{text-align:center;font-size:10px;color:var(--muted);padding:4px 0;}
+.dh:first-child{color:#f06962;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day{border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 2px;min-height:40px;position:relative;cursor:default;}
+.cal-day.empty{opacity:0;pointer-events:none;}
+.cal-day.today{background:rgba(245,197,24,0.12);border:1.5px solid rgba(245,197,24,0.4);}
+.cal-day.today .dn{color:var(--accent);}
+.cal-day.has-event{cursor:pointer;background:rgba(46,160,67,0.15);border:1.5px solid rgba(46,160,67,0.4);}
+.cal-day.has-event .dn{color:#4caf70;}
+.cal-day.past{opacity:0.35;}
+.dn{font-size:13px;font-weight:600;line-height:1;color:var(--text);}
+.dn.sun{color:#f06962;}
+.event-dot{width:5px;height:5px;border-radius:50%;background:var(--going);margin-top:3px;box-shadow:0 0 4px var(--going);}
+
+.section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:4px 20px 10px;}
+.events-list{display:flex;flex-direction:column;gap:10px;padding:0 14px;}
+
+.event-card{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform .15s;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden;}
+.event-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--going);border-radius:4px 0 0 4px;}
+.event-card.past::before{background:var(--muted);}
+.event-card.full::before{background:var(--accent);}
+.event-card:active{transform:scale(0.98);}
+.ec-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.ec-day{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;color:var(--accent);}
+.ec-month{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.ec-badge{font-size:11px;padding:4px 10px;border-radius:12px;font-weight:500;}
+.ec-badge.open{background:rgba(46,160,67,0.15);color:#4caf70;border:1px solid rgba(46,160,67,0.3);}
+.ec-badge.full{background:rgba(245,197,24,0.15);color:var(--accent);border:1px solid rgba(245,197,24,0.3);}
+.ec-badge.past{background:rgba(139,148,158,0.12);color:var(--muted);border:1px solid var(--border);}
+.ec-title{font-size:15px;font-weight:600;margin-bottom:6px;}
+.ec-details{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--muted);}
+.ec-footer{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.ec-slots{font-size:12px;color:var(--muted);white-space:nowrap;}
+.ec-bar{height:4px;background:var(--border);border-radius:2px;flex:1;overflow:hidden;}
+.ec-fill{height:100%;background:var(--going);border-radius:2px;transition:width .4s;}
+.ec-fill.nearly{background:var(--accent);}
+.ec-fill.full{background:var(--notgoing);}
+.ec-arrow{color:var(--accent);font-size:16px;margin-left:4px;}
+.edit-btn{font-size:11px;padding:3px 10px;border-radius:8px;background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.3);color:var(--accent);cursor:pointer;margin-left:8px;-webkit-tap-highlight-color:transparent;}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-state .ei{font-size:48px;margin-bottom:12px;}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:50;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-bg.show{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:24px 22px 40px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.64,1);max-height:92vh;overflow-y:auto;}
+.modal-bg.show .modal{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;cursor:pointer;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+
+.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:26px;}
+.pdot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:all .2s;}
+.pdot.on{background:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(245,197,24,0.5);}
+.pdot.err{background:var(--notgoing);border-color:var(--notgoing);animation:shk .35s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto;}
+.pkey{padding:18px;border-radius:14px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:22px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .15s;}
+.pkey:active{transform:scale(0.92);background:rgba(245,197,24,0.12);border-color:var(--accent);}
+.pkey.del{font-family:'Noto Sans HK',sans-serif;font-size:14px;color:var(--muted);}
+.pin-err{font-size:13px;color:#f06962;text-align:center;margin-top:12px;min-height:20px;}
+
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:13px;}
+.field label{font-size:12px;color:var(--muted);}
+.field input,.field textarea,.field select{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:'Noto Sans HK',sans-serif;font-size:15px;outline:none;-webkit-appearance:none;width:100%;}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.submit-btn{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),#e6a800);color:#000;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-top:4px;}
+.submit-btn:active{transform:scale(0.97);}
+.delete-btn{width:100%;padding:13px;border-radius:10px;border:1.5px solid var(--notgoing);background:transparent;color:#f06962;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;margin-top:10px;display:none;}
+
+.color-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.color-opt{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.color-opt.sel{border-color:#fff;transform:scale(1.2);box-shadow:0 0 8px rgba(255,255,255,0.3);}
+
+.fab{position:fixed;bottom:28px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#e6a800);border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 20px rgba(245,197,24,0.4);z-index:40;display:none;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.fab.show{display:flex;}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--going);color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;font-weight:500;z-index:200;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;max-width:90vw;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--notgoing);}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted);font-size:13px;gap:10px;}
+.spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="hrow">
+      <div class="brand">
+        <div class="logo">⚽</div>
+        <div>
+          <div class="team-name">恆友 FC</div>
+          <div class="team-sub">Football Schedule</div>
+        </div>
+      </div>
+      <button class="mgr-btn" id="mgrBtn" onclick="openPinModal()">⚙️ 管理員</button>
+    </div>
+  </div>
+
+  <div class="cal-nav">
+    <button class="nav-arr" onclick="shiftMonth(-1)">‹</button>
+    <div class="cal-month" id="calTitle"></div>
+    <button class="nav-arr" onclick="shiftMonth(1)">›</button>
+  </div>
+  <div class="cal-wrap">
+    <div class="day-headers">
+      <div class="dh">日</div><div class="dh">一</div><div class="dh">二</div>
+      <div class="dh">三</div><div class="dh">四</div><div class="dh">五</div><div class="dh">六</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <p class="section-title" id="listTitle">本月賽程</p>
+  <div class="events-list" id="eventsList">
+    <div class="loading"><div class="spin"></div> 載入中...</div>
+  </div>
+</div>
+
+<button class="fab" id="fab" onclick="openCreateModal()">＋</button>
+
+<!-- PIN MODAL -->
+<div class="modal-bg" id="pinModal">
+  <div class="modal">
+    <div class="modal-handle" onclick="closePinModal()"></div>
+    <div class="modal-title">🔐 Manager Login</div>
+    <div class="modal-sub">請輸入4位管理員密碼</div>
+    <div class="pin-dots">
+      <div class="pdot" id="pd0"></div><div class="pdot" id="pd1"></div>
+      <div class="pdot" id="pd2"></div><div class="pdot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pkey" onclick="pk('1')">1</button><button class="pkey" onclick="pk('2')">2</button><button class="pkey" onclick="pk('3')">3</button>
+      <button class="pkey" onclick="pk('4')">4</button><button class="pkey" onclick="pk('5')">5</button><button class="pkey" onclick="pk('6')">6</button>
+      <button class="pkey" onclick="pk('7')">7</button><button class="pkey" onclick="pk('8')">8</button><button class="pkey" onclick="pk('9')">9</button>
+      <button class="pkey del" onclick="pk('clr')">清除</button>
+      <button class="pkey" onclick="pk('0')">0</button>
+      <button class="pkey del" onclick="pk('del')">⌫</button>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+  </div>
+</div>
+
+<!-- CREATE/EDIT EVENT MODAL -->
+<div class="modal-bg" id="createModal">
+  <div class="modal">
+    <div class="modal-handle" onclick="closeCreateModal()"></div>
+    <div class="modal-title" id="createTitle">➕ 新增賽事</div>
+    <div class="modal-sub">填寫比賽詳情</div>
+    <div class="field"><label>🏟 賽事名稱</label><input type="text" id="evTitle" placeholder="五人賽 / 友賽"></div>
+    <div class="two-col">
+      <div class="field"><label>📅 日期</label><input type="date" id="evDate"></div>
+      <div class="field"><label>⏰ 開始</label><input type="time" id="evStart"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>⏰ 結束</label><input type="time" id="evEnd"></div>
+      <div class="field"><label>👥 人數上限</label><input type="number" id="evCap" value="14" min="5" max="30"></div>
+    </div>
+    <div class="field"><label>📍 地點</label><input type="text" id="evVenue" placeholder="蒲崗村道 #1"></div>
+    <div class="field"><label>🆚 對手</label><input type="text" id="evOpponent" placeholder="別隊"></div>
+    <div class="field"><label>💰 費用</label><input type="text" id="evFee" placeholder="$35 / 人"></div>
+    <div class="field"><label>📝 備註</label><textarea id="evNotes" rows="2" placeholder="帶白波衫..."></textarea></div>
+    <div class="field"><label>👕 球衣顏色</label></div>
+    <div class="color-picker" id="colorPicker"></div>
+    <button class="submit-btn" id="createBtn" onclick="submitEvent()">建立賽事</button>
+    <button class="delete-btn" id="deleteBtn" onclick="deleteEvent()">🗑 刪除此賽事</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── FIREBASE CONFIG ───────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAyLmh84JDr5ddjOnYYqgcJsupHJaZ-kig",
+  authDomain: "hangfc-rvsp.firebaseapp.com",
+  projectId: "hangfc-rvsp",
+  storageBucket: "hangfc-rvsp.appspot.com",
+  messagingSenderId: "477710217351",
+  appId: "1:477710217351:web:20badc5d8f88aa34404822"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ── STATE ─────────────────────────────────────────────────────────
+const SHIRT_COLORS = ['#e0e0e0','#212121','#1565c0','#c62828','#2e7d32','#f9a825','#6a1b9a','#00838f','#ff6f00','#37474f'];
+let mPin = localStorage.getItem('fc_pin') || '1234';
+let mgrMode = false, pinBuf = '', editingId = null, selColor = SHIRT_COLORS[0];
+let allEvents = [], viewYear, viewMonth;
+const now = new Date();
+viewYear = now.getFullYear(); viewMonth = now.getMonth();
+
+// ── INIT ─────────────────────────────────────────────────────────
+buildColorPicker();
+renderCalendar();
+loadEvents();
+
+function loadEvents() {
+  db.collection('events').orderBy('dateTs','asc').onSnapshot(function(snap) {
+    allEvents = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    renderCalendar();
+    renderList();
+  }, function(err) {
+    console.error('Firestore error:', err);
+    document.getElementById('eventsList').innerHTML =
+      '<div class="empty-state"><div class="ei">⚠️</div><p>載入失敗: ' + err.message + '</p></div>';
+  });
+}
+
+// ── CALENDAR ─────────────────────────────────────────────────────
+const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const DAYS   = ['日','一','二','三','四','五','六'];
+
+function renderCalendar() {
+  document.getElementById('calTitle').textContent = viewYear + '年 ' + MONTHS[viewMonth];
+  document.getElementById('listTitle').textContent = MONTHS[viewMonth] + ' 賽程';
+  var firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  var daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  var todayStr = toDateStr(now);
+  var monthEvMap = {};
+  allEvents.forEach(function(ev){
+    var parts = ev.date ? ev.date.split('-') : [];
+    if (parts.length===3 && parseInt(parts[0])===viewYear && parseInt(parts[1])-1===viewMonth) {
+      monthEvMap[ev.date] = ev;
+    }
+  });
+  var html = '';
+  for (var i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+  for (var d=1; d<=daysInMonth; d++) {
+    var mm = String(viewMonth+1).padStart(2,'0');
+    var dd = String(d).padStart(2,'0');
+    var dateStr = viewYear+'-'+mm+'-'+dd;
+    var isToday = dateStr === todayStr;
+    var isPast  = dateStr < todayStr;
+    var dayOfWeek = (firstDay + d - 1) % 7;
+    var isSun = dayOfWeek === 0;
+    var ev = monthEvMap[dateStr];
+    var cls = 'cal-day';
+    if (isPast && !isToday) cls += ' past';
+    if (isToday) cls += ' today';
+    if (ev) cls += ' has-event';
+    var click = ev ? 'onclick="goEvent(\''+ev.id+'\')"' : '';
+    html += '<div class="'+cls+'" '+click+'>'
+          + '<span class="dn'+(isSun?' sun':'')+'">'+d+'</span>'
+          + (ev ? '<div class="event-dot"></div>' : '')
+          + '</div>';
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function toDateStr(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function shiftMonth(dir) {
+  viewMonth += dir;
+  if (viewMonth > 11) { viewMonth=0; viewYear++; }
+  if (viewMonth <  0) { viewMonth=11; viewYear--; }
+  renderCalendar();
+  renderList();
+}
+
+function goEvent(id) { window.location.href = 'event.html?id=' + id; }
+
+// ── EVENT LIST ────────────────────────────────────────────────────
+function renderList() {
+  var monthEvs = allEvents.filter(function(ev){
+    var parts = ev.date ? ev.date.split('-') : [];
+    return parts.length===3 && parseInt(parts[0])===viewYear && parseInt(parts[1])-1===viewMonth;
+  });
+  var el = document.getElementById('eventsList');
+  if (!monthEvs.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">📅</div><p>本月暫無賽事</p></div>';
+    return;
+  }
+  el.innerHTML = monthEvs.map(function(ev){ return eventCardHTML(ev); }).join('');
+}
+
+function eventCardHTML(ev) {
+  var cap = ev.capacity||14, mc = ev.mainCount||0;
+  var pct = Math.min(mc/cap*100,100);
+  var todayStr = toDateStr(now);
+  var isPast = ev.date < todayStr, isFull = mc>=cap;
+  var parts = ev.date.split('-');
+  var dd = parts[2], mm = parts[1];
+  var dayName = '（'+DAYS[new Date(ev.date).getDay()]+'）';
+  var fillCls = pct>=100?'full':pct>=75?'nearly':'';
+  var badge = isPast
+    ? '<span class="ec-badge past">已完場</span>'
+    : isFull ? '<span class="ec-badge full">爆滿</span>'
+             : '<span class="ec-badge open">報名中</span>';
+  var editBtn = mgrMode
+    ? '<button class="edit-btn" onclick="openEditModal(\''+ev.id+'\',event)">✏️ 編輯</button>' : '';
+  return '<div class="event-card'+(isPast?' past':isFull?' full':'')+'" onclick="goEvent(\''+ev.id+'\')">'
+    +'<div class="ec-top">'
+    +'<div><div class="ec-day">'+dd+'</div><div class="ec-month">'+mm+'月 '+dayName+'</div></div>'
+    +'<div style="display:flex;align-items:center">'+badge+editBtn+'</div>'
+    +'</div>'
+    +'<div class="ec-title">'+esc(ev.title||'友賽')+'</div>'
+    +'<div class="ec-details">'
+    +(ev.timeStart?'<span>⏰ '+ev.timeStart+(ev.timeEnd?' – '+ev.timeEnd:'')+'</span>':'')
+    +(ev.venue?'<span>📍 '+esc(ev.venue)+'</span>':'')
+    +(ev.opponent?'<span>🆚 '+esc(ev.opponent)+'</span>':'')
+    +(ev.fee?'<span>💰 '+esc(ev.fee)+'</span>':'')
+    +'</div>'
+    +'<div class="ec-footer">'
+    +'<span class="ec-slots">'+mc+'/'+cap+'</span>'
+    +'<div class="ec-bar"><div class="ec-fill '+fillCls+'" style="width:'+pct+'%"></div></div>'
+    +'<span class="ec-arrow">›</span>'
+    +'</div></div>';
+}
+
+// ── PIN ───────────────────────────────────────────────────────────
+function openPinModal() {
+  if (mgrMode) { logoutMgr(); return; }
+  pinBuf='';
+  for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot';
+  document.getElementById('pinErr').textContent='';
+  document.getElementById('pinModal').classList.add('show');
+}
+function closePinModal() { document.getElementById('pinModal').classList.remove('show'); }
+
+function pk(v) {
+  if (v==='clr') pinBuf='';
+  else if (v==='del') pinBuf=pinBuf.slice(0,-1);
+  else if (pinBuf.length<4) pinBuf+=v;
+  for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot'+(i<pinBuf.length?' on':'');
+  document.getElementById('pinErr').textContent='';
+  if (pinBuf.length===4) setTimeout(checkPin,150);
+}
+
+function checkPin() {
+  if (pinBuf===mPin) {
+    mgrMode=true;
+    closePinModal();
+    document.getElementById('mgrBtn').classList.add('active');
+    document.getElementById('mgrBtn').textContent='🔓 登出';
+    document.getElementById('fab').classList.add('show');
+    renderList();
+    toast('🔓 歡迎，Manager！');
+  } else {
+    for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot err';
+    document.getElementById('pinErr').textContent='密碼錯誤，請重試';
+    pinBuf='';
+    setTimeout(function(){ for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot'; },700);
+  }
+}
+
+function logoutMgr() {
+  mgrMode=false;
+  document.getElementById('mgrBtn').classList.remove('active');
+  document.getElementById('mgrBtn').textContent='⚙️ 管理員';
+  document.getElementById('fab').classList.remove('show');
+  renderList();
+  toast('🔒 已登出管理員');
+}
+
+document.getElementById('pinModal').addEventListener('click', function(e){
+  if (e.target===this) closePinModal();
+});
+
+// ── CREATE / EDIT ─────────────────────────────────────────────────
+function openCreateModal() {
+  editingId=null;
+  document.getElementById('createTitle').textContent='➕ 新增賽事';
+  document.getElementById('createBtn').textContent='建立賽事';
+  document.getElementById('deleteBtn').style.display='none';
+  ['evTitle','evDate','evStart','evEnd','evVenue','evOpponent','evFee','evNotes'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('evCap').value=14;
+  selColor=SHIRT_COLORS[0]; updateColorPicker();
+  document.getElementById('createModal').classList.add('show');
+}
+
+function openEditModal(id, e) {
+  e.stopPropagation();
+  var ev = allEvents.find(function(x){ return x.id===id; });
+  if (!ev) return;
+  editingId=id;
+  document.getElementById('createTitle').textContent='✏️ 編輯賽事';
+  document.getElementById('createBtn').textContent='更新賽事';
+  document.getElementById('deleteBtn').style.display='block';
+  document.getElementById('evTitle').value    = ev.title||'';
+  document.getElementById('evDate').value     = ev.date||'';
+  document.getElementById('evStart').value    = ev.timeStart||'';
+  document.getElementById('evEnd').value      = ev.timeEnd||'';
+  document.getElementById('evCap').value      = ev.capacity||14;
+  document.getElementById('evVenue').value    = ev.venue||'';
+  document.getElementById('evOpponent').value = ev.opponent||'';
+  document.getElementById('evFee').value      = ev.fee||'';
+  document.getElementById('evNotes').value    = ev.notes||'';
+  selColor = ev.shirtColor||SHIRT_COLORS[0]; updateColorPicker();
+  document.getElementById('createModal').classList.add('show');
+}
+
+function closeCreateModal() { document.getElementById('createModal').classList.remove('show'); }
+
+document.getElementById('createModal').addEventListener('click', function(e){
+  if (e.target===this) closeCreateModal();
+});
+
+function submitEvent() {
+  var title = document.getElementById('evTitle').value.trim();
+  var date  = document.getElementById('evDate').value;
+  if (!date)  { toast('請選擇日期','err'); return; }
+  if (!title) { toast('請填寫賽事名稱','err'); return; }
+  var btn = document.getElementById('createBtn');
+  btn.textContent='儲存中...';
+  var data = {
+    title: title, date: date,
+    dateTs: new Date(date).getTime(),
+    timeStart: document.getElementById('evStart').value,
+    timeEnd:   document.getElementById('evEnd').value,
+    capacity:  parseInt(document.getElementById('evCap').value)||14,
+    venue:     document.getElementById('evVenue').value.trim(),
+    opponent:  document.getElementById('evOpponent').value.trim(),
+    fee:       document.getElementById('evFee').value.trim(),
+    notes:     document.getElementById('evNotes').value.trim(),
+    shirtColor: selColor
+  };
+  var promise = editingId
+    ? db.collection('events').doc(editingId).update(data)
+    : db.collection('events').add(Object.assign({mainCount:0}, data));
+  promise.then(function(){
+    closeCreateModal();
+    toast(editingId ? '✅ 賽事已更新！' : '🎉 賽事已建立！');
+  }).catch(function(err){
+    toast('儲存失敗: '+err.message,'err');
+  }).finally(function(){
+    btn.textContent = editingId ? '更新賽事' : '建立賽事';
+  });
+}
+
+function deleteEvent() {
+  if (!editingId) return;
+  if (!confirm('確定刪除此賽事？')) return;
+  db.collection('events').doc(editingId).delete().then(function(){
+    closeCreateModal();
+    toast('🗑 賽事已刪除');
+  }).catch(function(err){ toast('刪除失敗','err'); });
+}
+
+// ── COLOR PICKER ──────────────────────────────────────────────────
+function buildColorPicker() {
+  document.getElementById('colorPicker').innerHTML = SHIRT_COLORS.map(function(c){
+    return '<div class="color-opt'+(c===selColor?' sel':'')+'" style="background:'+c+'" onclick="pickColor(\''+c+'\',this)"></div>';
+  }).join('');
+}
+function updateColorPicker() {
+  document.querySelectorAll('.color-opt').forEach(function(el){
+    el.classList.toggle('sel', el.style.backgroundColor===selColor || el.getAttribute('style').includes(selColor));
+  });
+}
+function pickColor(c, el) {
+  selColor=c;
+  document.querySelectorAll('.color-opt').forEach(function(e){ e.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg,type) {
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },2600);
+}
+</script>
+</body>
+</html>

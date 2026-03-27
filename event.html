@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⚽ 出席登記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+HK:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- Firebase Compat -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root{--accent:#f5c518;--dark:#0d1117;--card:#161b22;--card2:#1c2330;--border:rgba(255,255,255,0.08);--text:#e6edf3;--muted:#8b949e;--going:#2ea043;--reserve:#1d6fa4;--maybe:#d29922;--notgoing:#da3633;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans HK',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 56px,rgba(255,255,255,0.012) 56px,rgba(255,255,255,0.012) 112px);pointer-events:none;z-index:0;}
+.wrap{max-width:480px;margin:0 auto;padding:0 0 100px;position:relative;z-index:1;}
+
+.hero{background:linear-gradient(160deg,#1a3a1f 0%,#0d1117 65%);padding:20px 20px 22px;border-bottom:3px solid var(--accent);position:relative;overflow:hidden;}
+.hero::after{content:'⚽';position:absolute;right:-20px;top:-15px;font-size:120px;opacity:0.05;transform:rotate(20deg);pointer-events:none;}
+.back-btn{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-bottom:16px;cursor:pointer;-webkit-tap-highlight-color:transparent;width:fit-content;}
+.ev-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.ev-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1.1;flex:1;}
+.shirt-dot{width:26px;height:26px;border-radius:50%;flex-shrink:0;margin-top:4px;border:2px solid rgba(255,255,255,0.25);}
+.ev-date{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.meta-item{display:flex;flex-direction:column;gap:2px;}
+.meta-item.full{grid-column:1/-1;}
+.meta-label{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;}
+.meta-val{font-size:13px;font-weight:500;}
+.ev-notes{background:rgba(245,197,24,0.06);border:1px solid rgba(245,197,24,0.15);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--muted);margin-top:10px;}
+
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+.tab{flex:1;padding:13px 6px;text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;-webkit-tap-highlight-color:transparent;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.panel{display:none;padding:18px;}
+.panel.active{display:block;}
+.slabel{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+.cap-alert{background:rgba(29,111,164,0.15);border:1px solid rgba(29,111,164,0.4);border-radius:10px;padding:10px 14px;font-size:13px;color:#5bb8f5;margin-bottom:14px;display:none;}
+.cap-alert.show{display:block;}
+.past-alert{background:rgba(139,148,158,0.1);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--muted);margin-bottom:14px;text-align:center;}
+
+.rsvp-options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.rsvp-btn{padding:14px 8px;border-radius:12px;border:2px solid var(--border);background:var(--card2);color:var(--muted);font-family:'Noto Sans HK',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s;-webkit-tap-highlight-color:transparent;user-select:none;}
+.rsvp-btn .ri{font-size:22px;display:block;margin-bottom:4px;}
+.rsvp-btn.going.sel{border-color:var(--going);background:rgba(46,160,67,0.15);color:#4caf70;}
+.rsvp-btn.maybe.sel{border-color:var(--maybe);background:rgba(210,153,34,0.15);color:#e5b931;}
+.rsvp-btn.no.sel{border-color:var(--notgoing);background:rgba(218,54,51,0.15);color:#f06962;}
+
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.field label{font-size:12px;color:var(--muted);}
+.field input,.field textarea{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-family:'Noto Sans HK',sans-serif;font-size:15px;outline:none;-webkit-appearance:none;width:100%;}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.pill{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none;}
+.pill.sel{border-color:var(--accent);background:rgba(245,197,24,0.12);color:var(--accent);}
+
+.submit-btn{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),#e6a800);color:#000;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.submit-btn:active{transform:scale(0.97);}
+.submit-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 4px;text-align:center;}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;}
+.stat-n.g{color:#4caf70;}.stat-n.r{color:#5bb8f5;}.stat-n.m{color:#e5b931;}.stat-n.x{color:#f06962;}
+.stat-l{font-size:9px;color:var(--muted);margin-top:2px;}
+
+.cap-bar-wrap{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px;}
+.cap-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;}
+.cap-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.cap-fill{height:100%;background:linear-gradient(90deg,var(--going),#4caf70);border-radius:4px;transition:width .5s;}
+.cap-fill.full{background:linear-gradient(90deg,#2ea043,#f5c518);}
+
+.player-list{display:flex;flex-direction:column;gap:8px;}
+.pcard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:10px;animation:sIn .2s ease;}
+.pcard.rv{border-color:rgba(29,111,164,0.3);background:rgba(29,111,164,0.06);}
+@keyframes sIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pnum{font-family:'Bebas Neue',sans-serif;font-size:18px;width:26px;text-align:center;flex-shrink:0;color:var(--muted);}
+.pnum.mn{color:#4caf70;}.pnum.rv{color:#5bb8f5;font-size:13px;}
+.pavatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.pinfo{flex:1;min-width:0;}
+.pname{font-size:14px;font-weight:500;}
+.pmeta{font-size:11px;color:var(--muted);margin-top:2px;}
+.ptag{font-size:10px;color:var(--muted);background:rgba(255,255,255,0.05);padding:2px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0;}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sdot.g{background:var(--going);box-shadow:0 0 5px var(--going);}
+.sdot.r{background:#5bb8f5;box-shadow:0 0 5px #5bb8f5;}
+.sdot.m{background:var(--maybe);}.sdot.x{background:var(--notgoing);}
+
+.glabel{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:8px;}
+.glabel::after{content:'';flex:1;height:1px;background:var(--border);}
+.glabel.rl{color:#5bb8f5;}
+.divider{border:none;border-top:2px dashed rgba(245,197,24,0.2);margin:4px 0 8px;}
+
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty .ei{font-size:48px;margin-bottom:12px;}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--muted);font-size:13px;gap:10px;}
+.spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--going);color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;font-weight:500;z-index:200;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;max-width:90vw;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--notgoing);}.toast.info{background:#1d6fa4;}
+</style>
+</head>
+<body>
+<div class="wrap" id="mainWrap">
+  <div class="loading"><div class="spin"></div> 載入賽事...</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── FIREBASE CONFIG ───────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAyLmh84JDr5ddjOnYYqgcJsupHJaZ-kig",
+  authDomain: "hangfc-rvsp.firebaseapp.com",
+  projectId: "hangfc-rvsp",
+  storageBucket: "hangfc-rvsp.appspot.com",
+  messagingSenderId: "477710217351",
+  appId: "1:477710217351:web:20badc5d8f88aa34404822"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ── PARSE EVENT ID ────────────────────────────────────────────────
+var params  = new URLSearchParams(location.search);
+var eventId = params.get('id');
+if (!eventId) { location.href='index.html'; }
+
+// ── STATE ─────────────────────────────────────────────────────────
+var eventData = null, players = [], curStatus = null, curPos = '';
+var DAYS = ['日','一','二','三','四','五','六'];
+
+// ── LOAD ──────────────────────────────────────────────────────────
+db.collection('events').doc(eventId).onSnapshot(function(snap){
+  if (!snap.exists) { location.href='index.html'; return; }
+  eventData = Object.assign({id:snap.id}, snap.data());
+  if (document.getElementById('mainWrap').querySelector('.loading')) buildPage();
+});
+
+db.collection('events').doc(eventId).collection('registrations')
+  .orderBy('ts','asc')
+  .onSnapshot(function(snap){
+    players = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    if (document.getElementById('panel-roster')) { renderRoster(); updateCapBar(); }
+  });
+
+// ── BUILD PAGE ────────────────────────────────────────────────────
+function buildPage() {
+  var ev = eventData;
+  var cap = ev.capacity||14;
+  var today = toDateStr(new Date());
+  var isPast = ev.date < today;
+  var parts = ev.date.split('-');
+  var yr=parts[0], mm=parts[1], dd=parts[2];
+  var dayName = '（'+DAYS[new Date(ev.date).getDay()]+'）';
+  document.title = '⚽ ' + (ev.title||'賽事') + ' — 恆友 FC';
+  document.getElementById('mainWrap').innerHTML =
+    '<div class="hero">'
+    +'<div class="back-btn" onclick="history.back()">‹ 返回賽程</div>'
+    +'<div class="ev-title-row">'
+    +'<div class="ev-title">'+esc(ev.title||'友賽')+'</div>'
+    +(ev.shirtColor?'<div class="shirt-dot" style="background:'+ev.shirtColor+'"></div>':'')
+    +'</div>'
+    +'<div class="ev-date">'+yr+'年 '+mm+'月'+dd+'日 '+dayName+'</div>'
+    +'<div class="meta-grid">'
+    +'<div class="meta-item"><span class="meta-label">⏰ 時間</span><span class="meta-val">'+(ev.timeStart||'—')+(ev.timeEnd?' – '+ev.timeEnd:'')+'</span></div>'
+    +'<div class="meta-item"><span class="meta-label">💰 費用</span><span class="meta-val">'+esc(ev.fee||'—')+'</span></div>'
+    +'<div class="meta-item full"><span class="meta-label">📍 地點</span><span class="meta-val">'+esc(ev.venue||'—')+'</span></div>'
+    +(ev.opponent?'<div class="meta-item"><span class="meta-label">🆚 對手</span><span class="meta-val">'+esc(ev.opponent)+'</span></div>':'')
+    +'</div>'
+    +(ev.notes?'<div class="ev-notes">📝 '+esc(ev.notes)+'</div>':'')
+    +'</div>'
+
+    +'<div class="tabs">'
+    +'<div class="tab active" id="tab-rsvp" onclick="switchTab(\'rsvp\')">⚽ 出席登記</div>'
+    +'<div class="tab" id="tab-roster" onclick="switchTab(\'roster\')">👥 名單</div>'
+    +'</div>'
+
+    +'<div class="panel active" id="panel-rsvp">'
+    +(isPast?'<div class="past-alert">⏰ 此賽事已完場，登記已關閉</div>':'')
+    +'<div class="cap-alert" id="capAlert">⚠️ 正選名額已滿！將自動排入後備</div>'
+    +'<p class="slabel">你會出席嗎？</p>'
+    +'<div class="rsvp-options">'
+    +'<div class="rsvp-btn going" onclick="selStatus(\'going\',this)"><span class="ri">✅</span>出席</div>'
+    +'<div class="rsvp-btn maybe" onclick="selStatus(\'maybe\',this)"><span class="ri">🤔</span>未確定</div>'
+    +'<div class="rsvp-btn no"    onclick="selStatus(\'no\',this)"><span class="ri">❌</span>不出席</div>'
+    +'</div>'
+    +'<div class="field"><label>你的名字 / Nickname</label>'
+    +'<input type="text" id="playerName" placeholder="e.g. 阿恆 / Andy" maxlength="20" autocomplete="off"></div>'
+    +'<p class="slabel">位置</p>'
+    +'<div class="pills" id="posPills">'
+    +'<div class="pill" onclick="selPill(this)">GK 門將</div>'
+    +'<div class="pill" onclick="selPill(this)">DEF 後衛</div>'
+    +'<div class="pill" onclick="selPill(this)">MID 中場</div>'
+    +'<div class="pill" onclick="selPill(this)">FWD 前鋒</div>'
+    +'<div class="pill" onclick="selPill(this)">任意</div>'
+    +'</div>'
+    +'<div class="field" id="reasonWrap" style="display:none"><label>缺席原因（可選）</label>'
+    +'<textarea id="reason" rows="2" placeholder="有事、旅行、受傷..."></textarea></div>'
+    +'<button class="submit-btn" id="submitBtn" onclick="submitRSVP()"'+(isPast?' disabled':'')+'>確認登記</button>'
+    +'</div>'
+
+    +'<div class="panel" id="panel-roster">'
+    +'<div class="stats-grid">'
+    +'<div class="stat-card"><div class="stat-n g" id="cG">0</div><div class="stat-l">✅ 正選</div></div>'
+    +'<div class="stat-card"><div class="stat-n r" id="cR">0</div><div class="stat-l">🔵 後備</div></div>'
+    +'<div class="stat-card"><div class="stat-n m" id="cM">0</div><div class="stat-l">🤔 未定</div></div>'
+    +'<div class="stat-card"><div class="stat-n x" id="cX">0</div><div class="stat-l">❌ 缺席</div></div>'
+    +'</div>'
+    +'<div class="cap-bar-wrap"><div class="cap-top"><span>正選容量</span><span id="capText">0/'+cap+' 人</span></div>'
+    +'<div class="cap-track"><div class="cap-fill" id="capBar" style="width:0%"></div></div></div>'
+    +'<div id="rosterList"><div class="empty"><div class="ei">👟</div><p>等緊隊友登記中...</p></div></div>'
+    +'</div>';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['rsvp','roster'].forEach(function(n){
+    document.getElementById('tab-'+n).classList.toggle('active',n===name);
+    document.getElementById('panel-'+n).classList.toggle('active',n===name);
+  });
+  if (name==='roster') renderRoster();
+}
+
+// ── RSVP INTERACTION ─────────────────────────────────────────────
+function selStatus(s, el) {
+  curStatus=s;
+  document.querySelectorAll('.rsvp-btn').forEach(function(b){ b.classList.remove('sel'); });
+  el.classList.add('sel');
+  document.getElementById('reasonWrap').style.display = s==='no'?'block':'none';
+  var cap=eventData?eventData.capacity||14:14;
+  var ann=annotate(); var mc=ann.filter(function(p){return p.slot==='main';}).length;
+  var alert=document.getElementById('capAlert');
+  if(alert) alert.classList.toggle('show', s==='going'&&mc>=cap);
+}
+
+function selPill(el) {
+  document.querySelectorAll('#posPills .pill').forEach(function(p){p.classList.remove('sel');});
+  el.classList.add('sel');
+  curPos=el.textContent;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────
+function submitRSVP() {
+  var name = document.getElementById('playerName').value.trim();
+  if (!name)      { toast('請輸入你的名字 👆','err'); return; }
+  if (!curStatus) { toast('請選擇出席狀態 👆','err'); return; }
+  var btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='登記中...';
+  var status = curStatus==='no'?'notgoing':curStatus;
+  var cap = eventData?eventData.capacity||14:14;
+  var nowTs = Date.now();
+  var dts = new Date(nowTs).toLocaleString('zh-HK',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  var existing = players.find(function(p){ return p.name.toLowerCase()===name.toLowerCase(); });
+  var data = {
+    name:name, status:status,
+    pos:curPos||'任意',
+    reason: (document.getElementById('reason')?document.getElementById('reason').value.trim():''),
+    ts: existing?existing.ts:nowTs,
+    dts: existing?existing.dts:dts,
+    color: rndColor(name)
+  };
+  var promise;
+  if (existing) {
+    promise = db.collection('events').doc(eventId).collection('registrations').doc(existing.id).set(data);
+  } else {
+    promise = db.collection('events').doc(eventId).collection('registrations').add(data);
+  }
+  promise.then(function(){
+    // Update mainCount on event doc
+    var ann = annotate(players.concat([data]));
+    var mc = ann.filter(function(p){return p.slot==='main';}).length;
+    db.collection('events').doc(eventId).update({mainCount:mc});
+    var isReserve = status==='going' && annotate().filter(function(p){return p.slot==='main';}).length>=cap;
+    if (existing) toast('✅ 已更新你的登記！');
+    else if (status==='going'&&!isReserve) toast('🎉 登記成功！場見！');
+    else if (status==='going'&&isReserve) toast('🔵 已加入後備名單','info');
+    else if (status==='maybe') toast('🤔 已加入未定名單');
+    else toast('😢 已記錄你不能出席');
+    setTimeout(function(){ switchTab('roster'); },900);
+  }).catch(function(err){
+    toast('登記失敗: '+err.message,'err');
+  }).finally(function(){
+    btn.disabled=false; btn.textContent='確認登記';
+  });
+}
+
+// ── ANNOTATE ─────────────────────────────────────────────────────
+function annotate(list) {
+  list = list||players;
+  var cap=eventData?eventData.capacity||14:14;
+  var sorted=[].concat(list).sort(function(a,b){return a.ts-b.ts;});
+  var mn=0,rv=0;
+  return sorted.map(function(p){
+    if(p.status==='going'){
+      if(mn<cap){mn++;return Object.assign({},p,{slot:'main',seq:mn});}
+      else{rv++;return Object.assign({},p,{slot:'reserve',seq:rv});}
+    }
+    return Object.assign({},p,{slot:p.status,seq:null});
+  });
+}
+
+// ── RENDER ROSTER ─────────────────────────────────────────────────
+function renderRoster() {
+  var ann=annotate();
+  var cap=eventData?eventData.capacity||14:14;
+  var main=ann.filter(function(p){return p.slot==='main';});
+  var reserve=ann.filter(function(p){return p.slot==='reserve';});
+  var maybe=ann.filter(function(p){return p.status==='maybe';});
+  var no=ann.filter(function(p){return p.status==='notgoing';});
+  if(document.getElementById('cG')) {
+    document.getElementById('cG').textContent=main.length;
+    document.getElementById('cR').textContent=reserve.length;
+    document.getElementById('cM').textContent=maybe.length;
+    document.getElementById('cX').textContent=no.length;
+  }
+  updateCapBar();
+  var el=document.getElementById('rosterList');
+  if(!el) return;
+  if(!players.length){el.innerHTML='<div class="empty"><div class="ei">👟</div><p>等緊隊友登記中...</p></div>';return;}
+  var h='<div class="player-list">';
+  if(main.length){h+='<div class="glabel">✅ 正選出席 ('+main.length+'/'+cap+')</div>';h+=main.map(function(p){return pCard(p,'main');}).join('');}
+  if(reserve.length){h+='<hr class="divider"><div class="glabel rl">🔵 後備名單 ('+reserve.length+')</div>';h+=reserve.map(function(p){return pCard(p,'reserve');}).join('');}
+  if(maybe.length){h+='<div class="glabel">🤔 未確定 ('+maybe.length+')</div>';h+=maybe.map(function(p){return pCard(p,'maybe');}).join('');}
+  if(no.length){h+='<div class="glabel">❌ 不出席 ('+no.length+')</div>';h+=no.map(function(p){return pCard(p,'notgoing');}).join('');}
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function updateCapBar() {
+  var cap=eventData?eventData.capacity||14:14;
+  var main=annotate().filter(function(p){return p.slot==='main';});
+  var pct=Math.min(main.length/cap*100,100);
+  var bar=document.getElementById('capBar'),txt=document.getElementById('capText');
+  if(bar){bar.style.width=pct+'%';bar.classList.toggle('full',main.length>=cap);}
+  if(txt) txt.textContent=main.length+'/'+cap+' 人';
+}
+
+function pCard(p,slot) {
+  var ini=p.name.charAt(0).toUpperCase();
+  var col=p.color||rndColor(p.name);
+  var numHtml=slot==='main'?'<div class="pnum mn">'+p.seq+'</div>':slot==='reserve'?'<div class="pnum rv">R'+p.seq+'</div>':'<div class="pnum">—</div>';
+  var dotCls=slot==='main'?'g':slot==='reserve'?'r':p.status==='maybe'?'m':'x';
+  var cardCls=slot==='reserve'?' rv':'';
+  return '<div class="pcard'+cardCls+'">'
+    +numHtml
+    +'<div class="pavatar" style="background:'+col+'22;border:1.5px solid '+col+'44;color:'+col+'">'+ini+'</div>'
+    +'<div class="pinfo"><div class="pname">'+esc(p.name)+'</div><div class="pmeta">'+esc(p.pos||'')+(p.reason?' · '+esc(p.reason):'')+'</div></div>'
+    +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">'
+    +'<div class="sdot '+dotCls+'"></div><div class="ptag">'+(p.dts||'')+'</div></div>'
+    +'</div>';
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function toDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function rndColor(s){var c=['#4caf70','#2196f3','#ff9800','#e91e63','#9c27b0','#00bcd4','#f44336','#8bc34a','#ffc107','#03a9f4'];var h=0;for(var i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i);return c[Math.abs(h)%c.length];}
+function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
+</script>
+</body>
+</html>
