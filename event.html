@@ -9,15 +9,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
-:root {
-  --bg:#fafafa; --surface:#ffffff; --surface2:#f5f5f5;
-  --border:#efefef; --border2:#dbdbdb;
-  --text:#111111; --sub:#737373; --sub2:#a8a8a8;
-  --green:#22c55e; --green-bg:#f0fdf4; --green-border:#bbf7d0;
-  --blue:#3b82f6; --blue-bg:#eff6ff;
-  --orange:#f97316; --orange-bg:#fff7ed;
-  --red:#ef4444; --red-bg:#fef2f2;
-  --radius:12px; --radius-sm:8px;
+:root{
+  --bg:#fafafa;--surface:#ffffff;--surface2:#f5f5f5;
+  --border:#efefef;--border2:#dbdbdb;
+  --text:#111111;--sub:#737373;--sub2:#a8a8a8;
+  --green:#22c55e;--green-bg:#f0fdf4;
+  --blue:#3b82f6;--blue-bg:#eff6ff;
+  --orange:#f97316;--orange-bg:#fff7ed;
+  --red:#ef4444;--red-bg:#fef2f2;
+  --radius:12px;--radius-sm:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Manrope','Noto Sans HK',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
@@ -25,113 +25,148 @@ body{font-family:'Manrope','Noto Sans HK',sans-serif;background:var(--bg);color:
 
 /* TOP NAV */
 .topnav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;padding:8px 0;}
-.nav-title{font-size:15px;font-weight:800;color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.nav-right{width:60px;text-align:right;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;padding:8px 0;}
+.nav-title{font-size:14px;font-weight:800;color:var(--text);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-mgr-btn{font-size:11px;font-weight:700;padding:6px 12px;border-radius:100px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--sub);cursor:pointer;white-space:nowrap;}
+.nav-mgr-btn.active{background:var(--text);border-color:var(--text);color:#fff;}
 
-/* EVENT BANNER */
-.ev-banner{position:relative;height:200px;overflow:hidden;}
+/* BANNER */
+.ev-banner{position:relative;height:190px;overflow:hidden;}
 .ev-banner-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);}
 .ev-banner-grid{position:absolute;inset:0;opacity:0.07;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:36px 36px;}
-.ev-banner-content{position:relative;z-index:1;padding:20px 20px 16px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;}
-.ev-status-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;margin-bottom:10px;width:fit-content;}
+.ev-banner-content{position:relative;z-index:1;padding:16px 20px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;}
+.ev-status-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;margin-bottom:8px;width:fit-content;}
 .ev-status-badge.open{background:rgba(34,197,94,0.2);color:#4ade80;}
 .ev-status-badge.full{background:rgba(249,115,22,0.2);color:#fb923c;}
-.ev-status-badge.past{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);}
-.ev-banner-title{font-size:26px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px;}
-.ev-banner-date{font-size:13px;color:rgba(255,255,255,0.7);font-weight:600;}
-.ev-shirt{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.3);}
+.ev-status-badge.past{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);}
+.ev-banner-title{font-size:24px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:5px;}
+.ev-banner-date{font-size:12px;color:rgba(255,255,255,0.65);font-weight:600;}
+.shirt-stack{position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:2;}
+.shirt-circle{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);}
+.shirt-vs{font-size:8px;color:rgba(255,255,255,0.45);font-weight:700;}
 
-/* META PILLS ROW */
-.meta-row{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none;}
+/* META */
+.meta-row{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none;}
 .meta-row::-webkit-scrollbar{display:none;}
-.meta-pill{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--sub);background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:5px 11px;}
-
-/* NOTES */
-.ev-notes{margin:12px 16px 0;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;font-weight:500;color:#92400e;}
+.meta-pill{flex-shrink:0;font-size:12px;font-weight:600;color:var(--sub);background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:5px 11px;}
+.ev-notes{margin:10px 16px 0;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;font-weight:500;color:#92400e;}
 
 /* TABS */
 .tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:10;}
-.tab{flex:1;padding:14px 8px;text-align:center;font-size:13px;font-weight:700;color:var(--sub2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
+.tab{flex:1;padding:13px 6px;text-align:center;font-size:12px;font-weight:700;color:var(--sub2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
 .tab.active{color:var(--text);border-bottom-color:var(--text);}
+.tab.mgr-tab{color:var(--sub2);}
+.tab.mgr-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
 
-.panel{display:none;padding:20px 16px;}
+.panel{display:none;padding:18px 16px;}
 .panel.active{display:block;}
 
 /* ALERTS */
-.alert{border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;display:none;}
+.alert{border-radius:var(--radius-sm);padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:14px;display:none;}
 .alert.show{display:block;}
 .alert.reserve{background:var(--blue-bg);border:1px solid #bfdbfe;color:var(--blue);}
 .alert.past-notice{background:var(--surface2);border:1px solid var(--border2);color:var(--sub);display:block;text-align:center;}
 
-/* RSVP BUTTONS */
-.slabel{font-size:11px;font-weight:700;color:var(--sub2);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;}
-.rsvp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;}
-.rsvp-btn{padding:14px 6px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface2);color:var(--sub);font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;user-select:none;}
-.rsvp-btn .ri{font-size:24px;display:block;margin-bottom:4px;}
+/* RSVP */
+.slabel{font-size:11px;font-weight:700;color:var(--sub2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+.rsvp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.rsvp-btn{padding:13px 6px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface2);color:var(--sub);font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;user-select:none;}
+.rsvp-btn .ri{font-size:22px;display:block;margin-bottom:3px;}
 .rsvp-btn.going.sel{border-color:var(--green);background:var(--green-bg);color:#16a34a;}
 .rsvp-btn.maybe.sel{border-color:var(--orange);background:var(--orange-bg);color:var(--orange);}
-.rsvp-btn.no.sel   {border-color:var(--red);  background:var(--red-bg);  color:var(--red);}
+.rsvp-btn.no.sel{border-color:var(--red);background:var(--red-bg);color:var(--red);}
 
-/* FIELD */
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
-.field label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;}
-.field input,.field textarea{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;color:var(--text);font-family:'Manrope','Noto Sans HK',sans-serif;font-size:15px;font-weight:500;outline:none;-webkit-appearance:none;width:100%;transition:border-color .15s;}
-.field input:focus,.field textarea:focus{border-color:var(--text);background:var(--surface);}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.field label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field textarea,.field select{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 13px;color:var(--text);font-family:'Manrope','Noto Sans HK',sans-serif;font-size:15px;font-weight:500;outline:none;-webkit-appearance:none;width:100%;transition:border-color .15s;}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--text);background:var(--surface);}
 
-/* POSITION PILLS */
-.pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
-.pill{padding:8px 15px;border-radius:100px;border:1.5px solid var(--border2);background:var(--surface);color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;}
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+.pill{padding:7px 14px;border-radius:100px;border:1.5px solid var(--border2);background:var(--surface);color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;}
 .pill.sel{border-color:var(--text);background:var(--text);color:#fff;}
 
-.submit-btn{width:100%;padding:15px;border-radius:var(--radius);border:none;background:var(--text);color:#fff;font-family:'Manrope',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:opacity .15s;letter-spacing:0.3px;}
-.submit-btn:active{opacity:0.85;}
-.submit-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.submit-btn{width:100%;padding:15px;border-radius:var(--radius);border:none;background:var(--text);color:#fff;font-family:'Manrope',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:opacity .15s;}
+.submit-btn:active{opacity:.85;}
+.submit-btn:disabled{opacity:.35;cursor:not-allowed;}
 
-/* ROSTER */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
-.stat-box{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius);padding:12px 6px;text-align:center;}
-.stat-num{font-size:26px;font-weight:800;line-height:1;}
-.stat-num.g{color:var(--green);} .stat-num.r{color:var(--blue);} .stat-num.m{color:var(--orange);} .stat-num.x{color:var(--red);}
-.stat-lbl{font-size:10px;font-weight:700;color:var(--sub2);margin-top:3px;letter-spacing:0.5px;}
+/* ROSTER STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.stat-box{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 4px;text-align:center;}
+.stat-num{font-size:24px;font-weight:800;line-height:1;}
+.stat-num.g{color:var(--green);}.stat-num.r{color:var(--blue);}.stat-num.m{color:var(--orange);}.stat-num.x{color:var(--red);}
+.stat-lbl{font-size:9px;font-weight:700;color:var(--sub2);margin-top:2px;letter-spacing:.5px;}
 
-.cap-box{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
-.cap-top{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:10px;}
-.cap-track{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.cap-box{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius);padding:13px;margin-bottom:14px;}
+.cap-top{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:8px;}
+.cap-track{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
 .cap-fill{height:100%;border-radius:4px;transition:width .5s;}
-.cap-fill.low{background:var(--green);} .cap-fill.mid{background:var(--orange);} .cap-fill.hi{background:var(--red);}
+.cap-fill.low{background:var(--green);}.cap-fill.mid{background:var(--orange);}.cap-fill.hi{background:var(--red);}
 
 /* PLAYER CARDS */
 .plist{display:flex;flex-direction:column;gap:6px;}
-.glabel{font-size:11px;font-weight:700;color:var(--sub2);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;display:flex;align-items:center;gap:8px;}
+.glabel{font-size:11px;font-weight:700;color:var(--sub2);text-transform:uppercase;letter-spacing:1px;margin:12px 0 7px;display:flex;align-items:center;gap:8px;}
 .glabel::after{content:'';flex:1;height:1px;background:var(--border2);}
-.reserve-divider{border:none;border-top:2px dashed var(--border2);margin:6px 0 10px;}
+.glabel.blue{color:var(--blue);}
+.reserve-divider{border:none;border-top:2px dashed var(--border2);margin:4px 0 8px;}
 
-.pcard{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;align-items:center;gap:10px;transition:background .1s;}
+.pcard{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 12px;display:flex;align-items:center;gap:10px;}
 .pcard.rv{border-color:#bfdbfe;background:#f0f7ff;}
-.pnum{font-size:16px;font-weight:800;width:28px;text-align:center;flex-shrink:0;color:var(--sub2);}
-.pnum.mn{color:var(--green);} .pnum.rv{color:var(--blue);font-size:12px;}
-.pavatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
+.pcard.mgr-card{border-color:var(--border2);}
+.pnum{font-size:15px;font-weight:800;width:26px;text-align:center;flex-shrink:0;color:var(--sub2);}
+.pnum.mn{color:var(--green);}.pnum.rv{color:var(--blue);font-size:12px;}
+.pavatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
 .pinfo{flex:1;min-width:0;}
-.pname{font-size:14px;font-weight:700;color:var(--text);}
-.pmeta{font-size:11px;color:var(--sub);font-weight:500;margin-top:2px;}
-.pright{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.sdot.g{background:var(--green);} .sdot.r{background:var(--blue);} .sdot.m{background:var(--orange);} .sdot.x{background:var(--red);}
-.ptag{font-size:10px;font-weight:600;color:var(--sub2);background:var(--surface2);padding:2px 7px;border-radius:6px;white-space:nowrap;}
+.pname{font-size:14px;font-weight:700;}
+.pmeta{font-size:11px;color:var(--sub);font-weight:500;margin-top:1px;}
+.pright{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.sdot{width:7px;height:7px;border-radius:50%;}
+.sdot.g{background:var(--green);}.sdot.r{background:var(--blue);}.sdot.m{background:var(--orange);}.sdot.x{background:var(--red);}
+.ptag{font-size:10px;font-weight:600;color:var(--sub2);background:var(--surface2);padding:2px 6px;border-radius:6px;white-space:nowrap;}
 
-.empty{text-align:center;padding:40px 20px;color:var(--sub);}
-.empty .ei{font-size:48px;margin-bottom:12px;}
+/* MANAGER CARD EXTRAS */
+.mgr-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.mgr-pill-btn{flex:1;padding:6px 8px;border-radius:var(--radius-sm);font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid;text-align:center;transition:all .15s;}
+.mgr-pill-btn.promote{background:var(--green-bg);border-color:#bbf7d0;color:#16a34a;}
+.mgr-pill-btn.demote{background:var(--orange-bg);border-color:#fed7aa;color:var(--orange);}
+.mgr-pill-btn.remove{background:var(--red-bg);border-color:#fecaca;color:var(--red);}
+.mgr-pill-btn.mark-going{background:var(--green-bg);border-color:#bbf7d0;color:#16a34a;}
+.mgr-pill-btn.mark-out{background:var(--red-bg);border-color:#fecaca;color:var(--red);}
+
+/* MANAGER PANEL HEADER */
+.mgr-header{background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.mgr-header-icon{font-size:20px;}
+.mgr-header-text{font-size:13px;font-weight:700;color:var(--blue);}
+.mgr-header-sub{font-size:11px;color:#60a5fa;font-weight:500;margin-top:1px;}
+.mgr-clear-btn{margin-left:auto;font-size:11px;font-weight:700;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid #fecaca;background:var(--red-bg);color:var(--red);cursor:pointer;white-space:nowrap;}
+
+/* PIN MODAL */
+.modal-bg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-bg.show{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 44px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.64,1);max-height:85vh;overflow-y:auto;}
+.modal-bg.show .modal{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px;cursor:pointer;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--sub);margin-bottom:20px;}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:22px;}
+.pdot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);transition:all .2s;}
+.pdot.on{background:var(--text);border-color:var(--text);}
+.pdot.err{background:var(--red);border-color:var(--red);animation:shk .35s;}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto;}
+.pkey{padding:16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'Manrope',sans-serif;font-size:20px;font-weight:700;cursor:pointer;transition:all .15s;user-select:none;}
+.pkey:active{background:var(--border2);transform:scale(.93);}
+.pkey.del{font-size:13px;font-weight:600;color:var(--sub);}
+.pin-err{font-size:13px;color:var(--red);text-align:center;margin-top:10px;min-height:18px;font-weight:600;}
+
+.empty{text-align:center;padding:36px 20px;color:var(--sub);}
+.empty .ei{font-size:44px;margin-bottom:10px;}
 .empty p{font-size:13px;font-weight:500;}
-
-.loading{display:flex;align-items:center;justify-content:center;padding:80px;color:var(--sub);font-size:13px;gap:10px;}
+.loading{display:flex;align-items:center;justify-content:center;padding:70px;color:var(--sub);font-size:13px;gap:10px;}
 .spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:12px 22px;border-radius:100px;font-size:13px;font-weight:700;z-index:200;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;max-width:90vw;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
 .toast.show{transform:translateX(-50%) translateY(0);}
-.toast.err{background:var(--red);}
-.toast.info{background:var(--blue);}
+.toast.err{background:var(--red);}.toast.info{background:var(--blue);}
 </style>
 </head>
 <body>
@@ -140,27 +175,53 @@ body{font-family:'Manrope','Noto Sans HK',sans-serif;background:var(--bg);color:
 </div>
 <div class="toast" id="toast"></div>
 
+<!-- PIN MODAL -->
+<div class="modal-bg" id="pinModal">
+  <div class="modal">
+    <div class="modal-handle" onclick="closePinModal()"></div>
+    <div class="modal-title">🔐 管理員登入</div>
+    <div class="modal-sub">輸入密碼以管理此賽事名單</div>
+    <div class="pin-dots">
+      <div class="pdot" id="pd0"></div><div class="pdot" id="pd1"></div>
+      <div class="pdot" id="pd2"></div><div class="pdot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pkey" onclick="pk('1')">1</button><button class="pkey" onclick="pk('2')">2</button><button class="pkey" onclick="pk('3')">3</button>
+      <button class="pkey" onclick="pk('4')">4</button><button class="pkey" onclick="pk('5')">5</button><button class="pkey" onclick="pk('6')">6</button>
+      <button class="pkey" onclick="pk('7')">7</button><button class="pkey" onclick="pk('8')">8</button><button class="pkey" onclick="pk('9')">9</button>
+      <button class="pkey del" onclick="pk('clr')">清除</button>
+      <button class="pkey" onclick="pk('0')">0</button>
+      <button class="pkey del" onclick="pk('del')">⌫</button>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+  </div>
+</div>
+
 <script>
-var firebaseConfig = {
-  apiKey: "AIzaSyAyLmh84JDr5ddjOnYYqgcJsupHJaZ-kig",
-  authDomain: "hangfc-rvsp.firebaseapp.com",
-  projectId: "hangfc-rvsp",
-  storageBucket: "hangfc-rvsp.appspot.com",
-  messagingSenderId: "477710217351",
-  appId: "1:477710217351:web:20badc5d8f88aa34404822"
+var firebaseConfig={
+  apiKey:"AIzaSyAyLmh84JDr5ddjOnYYqgcJsupHJaZ-kig",
+  authDomain:"hangfc-rvsp.firebaseapp.com",
+  projectId:"hangfc-rvsp",
+  storageBucket:"hangfc-rvsp.appspot.com",
+  messagingSenderId:"477710217351",
+  appId:"1:477710217351:web:20badc5d8f88aa34404822"
 };
 firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
+var db=firebase.firestore();
 
-var params = new URLSearchParams(location.search);
-var eventId = params.get('id');
-if (!eventId) { location.href='index.html'; }
+var params=new URLSearchParams(location.search);
+var eventId=params.get('id');
+if(!eventId){location.href='index.html';}
 
-var eventData=null, players=[], curStatus=null, curPos='';
 var DAYS=['日','一','二','三','四','五','六'];
 var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 var AVATAR_COLORS=['#f43f5e','#8b5cf6','#3b82f6','#10b981','#f59e0b','#06b6d4','#ec4899','#14b8a6'];
 
+var mPin='6088', mgrMode=false, pinBuf='';
+var eventData=null, players=[], curStatus=null, curPos='';
+var TABS=['rsvp','roster','manager'];
+
+// ── FIREBASE LISTENERS ────────────────────────────────────────────
 db.collection('events').doc(eventId).onSnapshot(function(snap){
   if(!snap.exists){location.href='index.html';return;}
   eventData=Object.assign({id:snap.id},snap.data());
@@ -170,46 +231,53 @@ db.collection('events').doc(eventId).onSnapshot(function(snap){
 db.collection('events').doc(eventId).collection('registrations')
   .orderBy('ts','asc').onSnapshot(function(snap){
     players=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
-    if(document.getElementById('panel-roster')){renderRoster();updateCapBar();}
+    if(!document.getElementById('panel-roster')) return;
+    renderRoster();
+    updateCapBar();
+    if(mgrMode&&document.getElementById('panel-manager').classList.contains('active')) renderMgrPanel();
   });
 
-function buildPage() {
-  var ev=eventData, cap=ev.capacity||14;
-  var today=toDateStr(new Date()), isPast=ev.date<today;
-  var parts=ev.date.split('-'), yr=parts[0], mm=parseInt(parts[1]), dd=parts[2];
+// ── BUILD PAGE ────────────────────────────────────────────────────
+function buildPage(){
+  var ev=eventData,cap=ev.capacity||14;
+  var today=toDateStr(new Date()),isPast=ev.date<today;
+  var parts=ev.date.split('-'),yr=parts[0],mm=parseInt(parts[1]),dd=parts[2];
   var dayName=DAYS[new Date(ev.date+'T00:00:00').getDay()];
-  var statusCls=isPast?'past':ev.mainCount>=cap?'full':'open';
-  var statusTxt=isPast?'已完場':ev.mainCount>=cap?'爆滿 🔥':'報名中 ✅';
+  var mc=ev.mainCount||0;
+  var statusCls=isPast?'past':mc>=cap?'full':'open';
+  var statusTxt=isPast?'已完場':mc>=cap?'爆滿 🔥':'報名中 ✅';
   var autoTitle=MONTHS[mm-1]+dd+'日 vs '+(ev.opponent||'別隊');
   document.title=autoTitle+' — 恆友 FC';
 
+  // shirt stack
+  var shirtStack='';
+  if(ev.shirtColor||ev.oppColor){
+    shirtStack='<div class="shirt-stack">';
+    if(ev.shirtColor) shirtStack+='<div class="shirt-circle" style="background:'+ev.shirtColor+'"></div>';
+    if(ev.shirtColor&&ev.oppColor) shirtStack+='<div class="shirt-vs">VS</div>';
+    if(ev.oppColor) shirtStack+='<div class="shirt-circle" style="background:'+ev.oppColor+'"></div>';
+    shirtStack+='</div>';
+  }
+
   document.getElementById('mainWrap').innerHTML=
-    // Top nav
+    // NAV
     '<div class="topnav">'
     +'<div class="back-btn" onclick="history.back()">‹ 返回</div>'
-    +'<div class="nav-title">'+esc(MONTHS[mm-1]+dd+'日 vs '+(ev.opponent||'別隊'))+'</div>'
-    +'<div class="nav-right"></div>'
+    +'<div class="nav-title">'+esc(autoTitle)+'</div>'
+    +'<button class="nav-mgr-btn" id="navMgrBtn" onclick="openPinModal()">🔐 管理</button>'
     +'</div>'
 
-    // Banner
+    // BANNER
     +'<div class="ev-banner">'
-    +'<div class="ev-banner-bg"></div>'
-    +'<div class="ev-banner-grid"></div>'
-    +(function(){
-      if(!ev.shirtColor&&!ev.oppColor) return '';
-      var s='<div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2">';
-      if(ev.shirtColor) s+='<div style="width:26px;height:26px;border-radius:50%;background:'+ev.shirtColor+';border:2px solid rgba(255,255,255,0.4)" title="我方"></div>';
-      if(ev.shirtColor&&ev.oppColor) s+='<div style="font-size:8px;color:rgba(255,255,255,0.5);font-weight:700">VS</div>';
-      if(ev.oppColor) s+='<div style="width:26px;height:26px;border-radius:50%;background:'+ev.oppColor+';border:2px solid rgba(255,255,255,0.4)" title="對方"></div>';
-      return s+'</div>';
-    })()
+    +'<div class="ev-banner-bg"></div><div class="ev-banner-grid"></div>'
+    +shirtStack
     +'<div class="ev-banner-content">'
     +'<span class="ev-status-badge '+statusCls+'">'+statusTxt+'</span>'
     +'<div class="ev-banner-title">vs '+esc(ev.opponent||'別隊')+'</div>'
     +'<div class="ev-banner-date">'+yr+'年 '+MONTHS[mm-1]+' '+dd+'日（'+dayName+'）</div>'
     +'</div></div>'
 
-    // Meta pills
+    // META
     +'<div class="meta-row">'
     +(ev.timeStart?'<div class="meta-pill">⏰ '+ev.timeStart+(ev.timeEnd?' – '+ev.timeEnd:'')+'</div>':'')
     +(ev.venue?'<div class="meta-pill">📍 '+esc(ev.venue)+'</div>':'')
@@ -218,21 +286,22 @@ function buildPage() {
     +'</div>'
     +(ev.notes?'<div class="ev-notes">📝 '+esc(ev.notes)+'</div>':'')
 
-    // Tabs
-    +'<div class="tabs">'
-    +'<div class="tab active" id="tab-rsvp" onclick="switchTab(\'rsvp\')">⚽ 出席登記</div>'
+    // TABS
+    +'<div class="tabs" id="tabBar">'
+    +'<div class="tab active" id="tab-rsvp" onclick="switchTab(\'rsvp\')">⚽ 登記</div>'
     +'<div class="tab" id="tab-roster" onclick="switchTab(\'roster\')">👥 名單</div>'
+    +'<div class="tab mgr-tab" id="tab-manager" style="display:none" onclick="switchTab(\'manager\')">🔐 管理</div>'
     +'</div>'
 
-    // RSVP panel
+    // RSVP PANEL
     +'<div class="panel active" id="panel-rsvp">'
     +(isPast?'<div class="alert past-notice">⏰ 此賽事已完場，登記已關閉</div>':'')
-    +'<div class="alert reserve" id="capAlert">ℹ️ 正選名額已滿，將自動排入後備</div>'
+    +'<div class="alert reserve" id="capAlert">ℹ️ 正選名額已滿，將自動排入後備名單</div>'
     +'<p class="slabel">你會出席嗎？</p>'
     +'<div class="rsvp-row">'
     +'<div class="rsvp-btn going" onclick="selStatus(\'going\',this)"><span class="ri">✅</span>出席</div>'
     +'<div class="rsvp-btn maybe" onclick="selStatus(\'maybe\',this)"><span class="ri">🤔</span>未確定</div>'
-    +'<div class="rsvp-btn no"    onclick="selStatus(\'no\',this)"><span class="ri">❌</span>不出席</div>'
+    +'<div class="rsvp-btn no" onclick="selStatus(\'no\',this)"><span class="ri">❌</span>不出席</div>'
     +'</div>'
     +'<div class="field"><label>你的名字 / Nickname</label>'
     +'<input type="text" id="playerName" placeholder="e.g. 阿恆 / Andy" maxlength="20" autocomplete="off"></div>'
@@ -249,7 +318,7 @@ function buildPage() {
     +'<button class="submit-btn" id="submitBtn" onclick="submitRSVP()"'+(isPast?' disabled':'')+'>確認登記</button>'
     +'</div>'
 
-    // Roster panel
+    // ROSTER PANEL
     +'<div class="panel" id="panel-roster">'
     +'<div class="stats-row">'
     +'<div class="stat-box"><div class="stat-num g" id="cG">0</div><div class="stat-lbl">正選</div></div>'
@@ -260,18 +329,28 @@ function buildPage() {
     +'<div class="cap-box"><div class="cap-top"><span>正選容量</span><span id="capText">0/'+cap+' 人</span></div>'
     +'<div class="cap-track"><div class="cap-fill low" id="capBar" style="width:0%"></div></div></div>'
     +'<div id="rosterList"><div class="empty"><div class="ei">👟</div><p>等緊隊友登記中...</p></div></div>'
+    +'</div>'
+
+    // MANAGER PANEL
+    +'<div class="panel" id="panel-manager">'
+    +'<div id="mgrPanelContent"><div class="empty"><div class="ei">🔐</div><p>管理員已登入</p></div></div>'
     +'</div>';
 }
 
-function switchTab(n) {
-  ['rsvp','roster'].forEach(function(t){
-    document.getElementById('tab-'+t).classList.toggle('active',t===n);
-    document.getElementById('panel-'+t).classList.toggle('active',t===n);
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(n){
+  TABS.forEach(function(t){
+    var tab=document.getElementById('tab-'+t);
+    var panel=document.getElementById('panel-'+t);
+    if(tab) tab.classList.toggle('active',t===n);
+    if(panel) panel.classList.toggle('active',t===n);
   });
   if(n==='roster') renderRoster();
+  if(n==='manager') renderMgrPanel();
 }
 
-function selStatus(s,el) {
+// ── RSVP ──────────────────────────────────────────────────────────
+function selStatus(s,el){
   curStatus=s;
   document.querySelectorAll('.rsvp-btn').forEach(function(b){b.classList.remove('sel');});
   el.classList.add('sel');
@@ -281,18 +360,17 @@ function selStatus(s,el) {
   var a=document.getElementById('capAlert');
   if(a) a.classList.toggle('show',s==='going'&&mc>=cap);
 }
-
-function selPill(el) {
+function selPill(el){
   document.querySelectorAll('#posPills .pill').forEach(function(p){p.classList.remove('sel');});
-  el.classList.add('sel'); curPos=el.textContent;
+  el.classList.add('sel');curPos=el.textContent;
 }
 
-function submitRSVP() {
+function submitRSVP(){
   var name=document.getElementById('playerName').value.trim();
-  if(!name)      {toast('請輸入你的名字 👆','err');return;}
-  if(!curStatus) {toast('請選擇出席狀態 👆','err');return;}
+  if(!name){toast('請輸入你的名字 👆','err');return;}
+  if(!curStatus){toast('請選擇出席狀態 👆','err');return;}
   var btn=document.getElementById('submitBtn');
-  btn.disabled=true; btn.textContent='登記中...';
+  btn.disabled=true;btn.textContent='登記中...';
   var status=curStatus==='no'?'notgoing':curStatus;
   var cap=eventData?eventData.capacity||14:14;
   var nowTs=Date.now();
@@ -300,16 +378,16 @@ function submitRSVP() {
   var existing=players.find(function(p){return p.name.toLowerCase()===name.toLowerCase();});
   var data={name:name,status:status,pos:curPos||'任意',
     reason:(document.getElementById('reason')?document.getElementById('reason').value.trim():''),
-    ts:existing?existing.ts:nowTs, dts:existing?existing.dts:dts, color:rndColor(name)};
+    ts:existing?existing.ts:nowTs,dts:existing?existing.dts:dts,color:rndColor(name)};
   var promise=existing
-    ? db.collection('events').doc(eventId).collection('registrations').doc(existing.id).set(data)
-    : db.collection('events').doc(eventId).collection('registrations').add(data);
+    ?db.collection('events').doc(eventId).collection('registrations').doc(existing.id).set(data)
+    :db.collection('events').doc(eventId).collection('registrations').add(data);
   promise.then(function(){
-    var mc=annotate(players.concat([data])).filter(function(p){return p.slot==='main';}).length;
-    db.collection('events').doc(eventId).update({mainCount:mc});
+    syncMainCount();
+    var isReserve=status==='going'&&annotate().filter(function(p){return p.slot==='main';}).length>=cap;
     if(existing) toast('登記已更新 ✅');
-    else if(status==='going'&&annotate().filter(function(p){return p.slot==='main';}).length>=cap) toast('已加入後備名單','info');
-    else if(status==='going') toast('登記成功！場見 🎉');
+    else if(status==='going'&&!isReserve) toast('登記成功！場見 🎉');
+    else if(status==='going'&&isReserve) toast('已加入後備名單 🔵','info');
     else if(status==='maybe') toast('已加入未定名單');
     else toast('已記錄你不能出席');
     setTimeout(function(){switchTab('roster');},900);
@@ -317,7 +395,8 @@ function submitRSVP() {
   .finally(function(){btn.disabled=false;btn.textContent='確認登記';});
 }
 
-function annotate(list) {
+// ── ANNOTATE (first-come → slots) ────────────────────────────────
+function annotate(list){
   list=list||players;
   var cap=eventData?eventData.capacity||14:14;
   var sorted=[].concat(list).sort(function(a,b){return a.ts-b.ts;});
@@ -331,32 +410,31 @@ function annotate(list) {
   });
 }
 
-function renderRoster() {
-  var ann=annotate(), cap=eventData?eventData.capacity||14:14;
+// ── ROSTER (read-only) ────────────────────────────────────────────
+function renderRoster(){
+  var ann=annotate(),cap=eventData?eventData.capacity||14:14;
   var main=ann.filter(function(p){return p.slot==='main';});
   var reserve=ann.filter(function(p){return p.slot==='reserve';});
   var maybe=ann.filter(function(p){return p.status==='maybe';});
   var no=ann.filter(function(p){return p.status==='notgoing';});
-  if(document.getElementById('cG')){
-    document.getElementById('cG').textContent=main.length;
-    document.getElementById('cR').textContent=reserve.length;
-    document.getElementById('cM').textContent=maybe.length;
-    document.getElementById('cX').textContent=no.length;
-  }
+  ['cG','cR','cM','cX'].forEach(function(id,i){
+    var el=document.getElementById(id);
+    if(el) el.textContent=[main.length,reserve.length,maybe.length,no.length][i];
+  });
   updateCapBar();
   var el=document.getElementById('rosterList');
   if(!el) return;
   if(!players.length){el.innerHTML='<div class="empty"><div class="ei">👟</div><p>等緊隊友登記中...</p></div>';return;}
   var h='<div class="plist">';
-  if(main.length){h+='<div class="glabel">✅ 正選出席 ('+main.length+'/'+cap+')</div>';h+=main.map(function(p){return pCard(p,'main');}).join('');}
-  if(reserve.length){h+='<hr class="reserve-divider"><div class="glabel" style="color:#3b82f6">🔵 後備名單 ('+reserve.length+')</div>';h+=reserve.map(function(p){return pCard(p,'reserve');}).join('');}
-  if(maybe.length){h+='<div class="glabel">🤔 未確定 ('+maybe.length+')</div>';h+=maybe.map(function(p){return pCard(p,'maybe');}).join('');}
-  if(no.length){h+='<div class="glabel">❌ 不出席 ('+no.length+')</div>';h+=no.map(function(p){return pCard(p,'notgoing');}).join('');}
+  if(main.length){h+='<div class="glabel">✅ 正選出席 ('+main.length+'/'+cap+')</div>';h+=main.map(function(p){return pCard(p,'main',false);}).join('');}
+  if(reserve.length){h+='<hr class="reserve-divider"><div class="glabel blue">🔵 後備名單 ('+reserve.length+')</div>';h+=reserve.map(function(p){return pCard(p,'reserve',false);}).join('');}
+  if(maybe.length){h+='<div class="glabel">🤔 未確定 ('+maybe.length+')</div>';h+=maybe.map(function(p){return pCard(p,'maybe',false);}).join('');}
+  if(no.length){h+='<div class="glabel">❌ 不出席 ('+no.length+')</div>';h+=no.map(function(p){return pCard(p,'notgoing',false);}).join('');}
   h+='</div>';
   el.innerHTML=h;
 }
 
-function updateCapBar() {
+function updateCapBar(){
   var cap=eventData?eventData.capacity||14:14;
   var mc=annotate().filter(function(p){return p.slot==='main';}).length;
   var pct=Math.min(mc/cap*100,100);
@@ -365,7 +443,162 @@ function updateCapBar() {
   if(txt) txt.textContent=mc+'/'+cap+' 人';
 }
 
-function pCard(p,slot) {
+// ── MANAGER PANEL ─────────────────────────────────────────────────
+function renderMgrPanel(){
+  var ann=annotate(),cap=eventData?eventData.capacity||14:14;
+  var main=ann.filter(function(p){return p.slot==='main';});
+  var reserve=ann.filter(function(p){return p.slot==='reserve';});
+  var maybe=ann.filter(function(p){return p.status==='maybe';});
+  var no=ann.filter(function(p){return p.status==='notgoing';});
+  var el=document.getElementById('mgrPanelContent');
+  if(!el) return;
+
+  var h='<div class="mgr-header">'
+    +'<div class="mgr-header-icon">🛡️</div>'
+    +'<div><div class="mgr-header-text">管理員模式</div>'
+    +'<div class="mgr-header-sub">可調整出席狀態、移至後備或移除球員</div></div>'
+    +'<button class="mgr-clear-btn" onclick="clearAllRegistrations()">清除全部</button>'
+    +'</div>';
+
+  if(!players.length){
+    h+='<div class="empty"><div class="ei">👟</div><p>尚無登記</p></div>';
+    el.innerHTML=h; return;
+  }
+
+  h+='<div class="plist">';
+  if(main.length){
+    h+='<div class="glabel">✅ 正選出席 ('+main.length+'/'+cap+')</div>';
+    h+=main.map(function(p){return mgrCard(p,'main');}).join('');
+  }
+  if(reserve.length){
+    h+='<hr class="reserve-divider"><div class="glabel blue">🔵 後備名單 ('+reserve.length+')</div>';
+    h+=reserve.map(function(p){return mgrCard(p,'reserve');}).join('');
+  }
+  if(maybe.length){
+    h+='<div class="glabel">🤔 未確定 ('+maybe.length+')</div>';
+    h+=maybe.map(function(p){return mgrCard(p,'maybe');}).join('');
+  }
+  if(no.length){
+    h+='<div class="glabel">❌ 不出席 ('+no.length+')</div>';
+    h+=no.map(function(p){return mgrCard(p,'notgoing');}).join('');
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function mgrCard(p,slot){
+  var ini=p.name.charAt(0).toUpperCase();
+  var col=p.color||rndColor(p.name);
+  var numHtml=slot==='main'
+    ?'<div class="pnum mn">'+p.seq+'</div>'
+    :slot==='reserve'
+    ?'<div class="pnum rv">R'+p.seq+'</div>'
+    :'<div class="pnum">—</div>';
+  var dotCls=slot==='main'?'g':slot==='reserve'?'r':p.status==='maybe'?'m':'x';
+
+  // Action buttons based on current slot/status
+  var actions='<div class="mgr-actions">';
+  if(slot==='main'){
+    // Can demote to reserve (artificially set ts to very large to push to back)
+    actions+='<button class="mgr-pill-btn demote" onclick="demoteToReserve(\''+p.id+'\')">→ 後備</button>';
+  }
+  if(slot==='reserve'){
+    // Promote: give earliest ts to jump to front
+    actions+='<button class="mgr-pill-btn promote" onclick="promoteToMain(\''+p.id+'\')">↑ 升正選</button>';
+  }
+  if(p.status==='maybe'||p.status==='notgoing'){
+    actions+='<button class="mgr-pill-btn mark-going" onclick="markStatus(\''+p.id+'\',\'going\')">✅ 改出席</button>';
+  }
+  if(p.status==='going'){
+    actions+='<button class="mgr-pill-btn mark-out" onclick="markStatus(\''+p.id+'\',\'notgoing\')">❌ 改不出席</button>';
+  }
+  actions+='<button class="mgr-pill-btn remove" onclick="removePlayer(\''+p.id+'\',\''+esc(p.name)+'\')">🗑 移除</button>';
+  actions+='</div>';
+
+  return '<div class="pcard mgr-card'+(slot==='reserve'?' rv':'')+'">'
+    +numHtml
+    +'<div class="pavatar" style="background:'+col+'18;color:'+col+'">'+ini+'</div>'
+    +'<div class="pinfo"><div class="pname">'+esc(p.name)+'</div>'
+    +'<div class="pmeta">'+esc(p.pos||'')+(p.reason?' · '+esc(p.reason):'')+'</div>'
+    +actions+'</div>'
+    +'<div class="pright"><div class="sdot '+dotCls+'"></div><div class="ptag">'+(p.dts||'')+'</div></div>'
+    +'</div>';
+}
+
+// ── MANAGER ACTIONS ───────────────────────────────────────────────
+// Promote: give this player the earliest timestamp so they become #1 in going queue
+function promoteToMain(pid){
+  var p=players.find(function(x){return x.id===pid;});
+  if(!p) return;
+  // Find the earliest ts in going list and subtract 1
+  var goingTs=players.filter(function(x){return x.status==='going';}).map(function(x){return x.ts;});
+  var newTs=goingTs.length?Math.min.apply(null,goingTs)-1:Date.now();
+  db.collection('events').doc(eventId).collection('registrations').doc(pid)
+    .update({status:'going',ts:newTs})
+    .then(function(){syncMainCount();toast(esc(p.name)+' 已升至正選 ✅');renderMgrPanel();})
+    .catch(function(e){toast('操作失敗','err');});
+}
+
+// Demote: push this player's ts to end of going queue (becomes reserve)
+function demoteToReserve(pid){
+  var p=players.find(function(x){return x.id===pid;});
+  if(!p) return;
+  var cap=eventData?eventData.capacity||14:14;
+  var goingTs=players.filter(function(x){return x.status==='going';}).map(function(x){return x.ts;});
+  var newTs=goingTs.length?Math.max.apply(null,goingTs)+1:Date.now();
+  db.collection('events').doc(eventId).collection('registrations').doc(pid)
+    .update({ts:newTs})
+    .then(function(){syncMainCount();toast(esc(p.name)+' 已移至後備 🔵','info');renderMgrPanel();})
+    .catch(function(e){toast('操作失敗','err');});
+}
+
+// Change status (going / notgoing / maybe)
+function markStatus(pid,newStatus){
+  var p=players.find(function(x){return x.id===pid;});
+  if(!p) return;
+  var updateData={status:newStatus};
+  // If marking as going and was not going before, assign a fresh ts
+  if(newStatus==='going'&&p.status!=='going') updateData.ts=Date.now();
+  db.collection('events').doc(eventId).collection('registrations').doc(pid)
+    .update(updateData)
+    .then(function(){
+      syncMainCount();
+      toast(esc(p.name)+' 狀態已更新');
+      renderMgrPanel();
+    })
+    .catch(function(e){toast('操作失敗','err');});
+}
+
+// Remove player
+function removePlayer(pid,name){
+  if(!confirm('確定移除 '+name+'？')) return;
+  db.collection('events').doc(eventId).collection('registrations').doc(pid).delete()
+    .then(function(){syncMainCount();toast(name+' 已移除');renderMgrPanel();})
+    .catch(function(e){toast('移除失敗','err');});
+}
+
+// Clear all registrations
+function clearAllRegistrations(){
+  if(!confirm('確定清除此賽事所有登記？此操作不可撤銷。')) return;
+  var batch=db.batch();
+  players.forEach(function(p){
+    batch.delete(db.collection('events').doc(eventId).collection('registrations').doc(p.id));
+  });
+  batch.commit().then(function(){
+    db.collection('events').doc(eventId).update({mainCount:0});
+    toast('所有登記已清除 🗑');
+    renderMgrPanel();
+  }).catch(function(e){toast('清除失敗','err');});
+}
+
+// Sync mainCount on event doc
+function syncMainCount(){
+  var mc=annotate().filter(function(p){return p.slot==='main';}).length;
+  db.collection('events').doc(eventId).update({mainCount:mc});
+}
+
+// ── PLAYER CARD (read-only) ───────────────────────────────────────
+function pCard(p,slot,mgr){
   var ini=p.name.charAt(0).toUpperCase();
   var col=p.color||rndColor(p.name);
   var num=slot==='main'?'<div class="pnum mn">'+p.seq+'</div>'
@@ -381,6 +614,54 @@ function pCard(p,slot) {
     +'</div>';
 }
 
+// ── PIN ───────────────────────────────────────────────────────────
+function openPinModal(){
+  if(mgrMode){logoutMgr();return;}
+  pinBuf='';
+  for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot';
+  document.getElementById('pinErr').textContent='';
+  document.getElementById('pinModal').classList.add('show');
+}
+function closePinModal(){document.getElementById('pinModal').classList.remove('show');}
+function pk(v){
+  if(v==='clr') pinBuf='';
+  else if(v==='del') pinBuf=pinBuf.slice(0,-1);
+  else if(pinBuf.length<4) pinBuf+=v;
+  for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot'+(i<pinBuf.length?' on':'');
+  document.getElementById('pinErr').textContent='';
+  if(pinBuf.length===4) setTimeout(checkPin,150);
+}
+function checkPin(){
+  if(pinBuf===mPin){
+    mgrMode=true;
+    closePinModal();
+    // Show manager tab
+    var mgrTab=document.getElementById('tab-manager');
+    if(mgrTab) mgrTab.style.display='';
+    // Update nav button
+    var nb=document.getElementById('navMgrBtn');
+    if(nb){nb.classList.add('active');nb.textContent='✓ 管理中';}
+    toast('歡迎，Manager 👋');
+    switchTab('manager');
+  } else {
+    for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot err';
+    document.getElementById('pinErr').textContent='密碼錯誤，請重試';
+    pinBuf='';
+    setTimeout(function(){for(var i=0;i<4;i++) document.getElementById('pd'+i).className='pdot';},700);
+  }
+}
+function logoutMgr(){
+  mgrMode=false;
+  var mgrTab=document.getElementById('tab-manager');
+  if(mgrTab) mgrTab.style.display='none';
+  var nb=document.getElementById('navMgrBtn');
+  if(nb){nb.classList.remove('active');nb.textContent='🔐 管理';}
+  switchTab('rsvp');
+  toast('已登出管理員');
+}
+document.getElementById('pinModal').addEventListener('click',function(e){if(e.target===this)closePinModal();});
+
+// ── UTILS ─────────────────────────────────────────────────────────
 function toDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function rndColor(s){var c=['#f43f5e','#8b5cf6','#3b82f6','#10b981','#f59e0b','#06b6d4','#ec4899','#14b8a6'];var h=0;for(var i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i);return c[Math.abs(h)%c.length];}
